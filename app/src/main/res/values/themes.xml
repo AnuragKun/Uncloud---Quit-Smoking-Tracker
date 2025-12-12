@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.QuitSmoking" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.QuitSmoking.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_splashscreen</item>
+        <item name="postSplashScreenTheme">@style/Theme.QuitSmoking</item>
+
+        <item name="android:windowSplashScreenBrandingImage">@drawable/logo_brandname</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+
+
+    </style>
+</resources>
