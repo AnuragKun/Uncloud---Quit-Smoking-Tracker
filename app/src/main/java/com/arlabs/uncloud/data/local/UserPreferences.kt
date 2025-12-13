@@ -31,6 +31,9 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         val HEALTH_NOTIFICATIONS_ENABLED = booleanPreferencesKey("health_notifications_enabled")
         val NOTIFICATION_HOUR = intPreferencesKey("notification_hour")
         val NOTIFICATION_MINUTE = intPreferencesKey("notification_minute")
+        val LAST_PLEDGE_DATE = stringPreferencesKey("last_pledge_date")
+        val LIFETIME_CIGS = intPreferencesKey("lifetime_cigs")
+        val LIFETIME_MONEY = doublePreferencesKey("lifetime_money")
     }
 
     val userConfig: Flow<UserConfig?> =
@@ -42,9 +45,11 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
                         preferences[MINUTES_PER_CIGARETTE] ?: 10 // Default to 10 if missing
                 val timestamp = preferences[QUIT_TIMESTAMP]
                 val currency = preferences[CURRENCY] ?: "$"
+                val lifetimeCigs = preferences[LIFETIME_CIGS] ?: 0
+                val lifetimeMoney = preferences[LIFETIME_MONEY] ?: 0.0
 
                 if (cigsPerDay != null && cost != null && cigsInPack != null && timestamp != null) {
-                    UserConfig(cigsPerDay, cost, cigsInPack, minutesPerCig, timestamp, currency)
+                    UserConfig(cigsPerDay, cost, cigsInPack, minutesPerCig, timestamp, currency, lifetimeCigs, lifetimeMoney)
                 } else {
                     null
                 }
@@ -61,6 +66,8 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
             preferences[MINUTES_PER_CIGARETTE] = config.minutesPerCigarette
             preferences[QUIT_TIMESTAMP] = config.quitTimestamp
             preferences[CURRENCY] = config.currency
+            preferences[LIFETIME_CIGS] = config.lifetimeCigarettes
+            preferences[LIFETIME_MONEY] = config.lifetimeMoney
         }
     }
 
@@ -80,6 +87,13 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
             preferences[LAST_QUOTE_DATE] = date
             preferences[CURRENT_QUOTE_INDEX] = index
         }
+    }
+
+    val pledgeState: Flow<String?> =
+            dataStore.data.map { preferences -> preferences[LAST_PLEDGE_DATE] }
+
+    suspend fun savePledgeState(date: String) {
+        dataStore.edit { preferences -> preferences[LAST_PLEDGE_DATE] = date }
     }
 
     suspend fun clear() {

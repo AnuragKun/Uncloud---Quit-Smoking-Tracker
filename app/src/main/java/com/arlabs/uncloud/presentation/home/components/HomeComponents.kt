@@ -64,6 +64,8 @@ import java.util.Locale
 // --- Hero Timer ---
 @Composable
 fun HeroTimer(
+        years: Long = 0,
+        months: Long = 0,
         days: Long,
         hours: Long,
         minutes: Long,
@@ -123,22 +125,55 @@ fun HeroTimer(
                                 modifier = Modifier.padding(bottom = 8.dp)
                         )
 
-                        Text(
-                                text = "${days}d",
-                                style =
-                                        MaterialTheme.typography.displayMedium.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                        )
-                        )
-
-                        Row(
-                                verticalAlignment = Alignment.Bottom,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        if (years > 0) {
+                            Text(
+                                    text = "${years}y",
+                                    style =
+                                    MaterialTheme.typography.displayMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                    )
+                            )
+                            Row(
+                                    verticalAlignment = Alignment.Bottom,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TimerUnit(value = months, unit = "m")
+                                TimerUnit(value = days, unit = "d")
+                            }
+                        } else if (months > 0) {
+                            Text(
+                                    text = "${months}m",
+                                    style =
+                                    MaterialTheme.typography.displayMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                    )
+                            )
+                            Row(
+                                    verticalAlignment = Alignment.Bottom,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TimerUnit(value = days, unit = "d")
+                                TimerUnit(value = hours, unit = "h")
+                            }
+                        } else {
+                            Text(
+                                    text = "${days}d",
+                                    style =
+                                    MaterialTheme.typography.displayMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                    )
+                            )
+                            Row(
+                                    verticalAlignment = Alignment.Bottom,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 TimerUnit(value = hours, unit = "h")
                                 TimerUnit(value = minutes, unit = "m")
                                 TimerUnit(value = seconds, unit = "s")
+                            }
                         }
                 }
         }

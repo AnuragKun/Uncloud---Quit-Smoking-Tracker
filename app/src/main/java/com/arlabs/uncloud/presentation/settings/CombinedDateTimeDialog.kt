@@ -76,20 +76,19 @@ fun CombinedDateTimeDialog(initialMillis: Long, onDismiss: () -> Unit, onConfirm
                 color = MaterialTheme.colorScheme.surfaceContainer
         ) {
             Column(
-                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                         text = "Edit Quit Date & Time",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 )
 
                 TabRow(
                         selectedTabIndex = selectedTab,
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
                 ) {
                     Tab(
                             selected = selectedTab == 0,
@@ -107,7 +106,9 @@ fun CombinedDateTimeDialog(initialMillis: Long, onDismiss: () -> Unit, onConfirm
                     DatePicker(
                             state = datePickerState,
                             showModeToggle = false,
-                            modifier = Modifier.height(400.dp)
+                            modifier = Modifier.height(400.dp),
+                            title = null,
+                            headline = null
                     )
                 } else {
                     Column(

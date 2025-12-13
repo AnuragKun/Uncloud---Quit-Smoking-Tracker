@@ -6,5 +6,7 @@ data class UserConfig(
         val cigarettesInPack: Int,
         val minutesPerCigarette: Int,
         val quitTimestamp: Long,
-        val currency: String = "$"
+        val currency: String = "$",
+        val lifetimeCigarettes: Int = 0,
+        val lifetimeMoney: Double = 0.0
 )

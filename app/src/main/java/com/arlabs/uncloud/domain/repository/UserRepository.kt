@@ -17,4 +17,10 @@ interface UserRepository {
     val notificationSettings: Flow<NotificationConfig>
     suspend fun saveNotificationSettings(config: NotificationConfig)
     suspend fun resetProgress()
+
+    val pledgeState: Flow<String?>
+    suspend fun savePledgeState(date: String)
+
+    val breaches: Flow<List<com.arlabs.uncloud.domain.model.Breach>>
+    suspend fun reportBreach(trigger: String, notes: String?)
 }

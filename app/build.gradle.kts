@@ -83,6 +83,10 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    //widgets
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+    implementation("androidx.glance:glance-material3:1.1.0") // For Material styling
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

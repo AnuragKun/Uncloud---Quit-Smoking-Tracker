@@ -28,6 +28,11 @@ object DatabaseModule {
     }
 
     @Provides
+    fun provideBreachDao(database: AppDatabase): com.arlabs.uncloud.data.local.dao.BreachDao {
+        return database.breachDao()
+    }
+
+    @Provides
     @Singleton
     fun provideUserPreferences(@ApplicationContext context: Context): UserPreferences {
         return UserPreferences(context)

@@ -26,4 +26,20 @@ sealed interface Screen {
     data object TermsOfService : Screen {
         override val route = "terms_of_service"
     }
+
+    data object Panic : Screen {
+        override val route = "panic"
+    }
+
+    data object Ranking : Screen {
+        override val route = "ranking"
+    }
+
+    data object Protocol : Screen {
+        override val route = "protocol"
+    }
+
+    data object ReportBreach : Screen {
+        override val route = "report_breach"
+    }
 }

@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">quitSmoking</string>
+    <string name="app_name">Uncloud</string>
+    <string name="widget_daily_pledge_name">Daily Pledge</string>
+    <string name="widget_commitment_grid_name">Commitment Grid</string>
+    <string name="widget_daily_clarity_name">Daily Clarity</string>
+    <string name="widget_emergency_shield_name">Emergency Shield</string>
 </resources>

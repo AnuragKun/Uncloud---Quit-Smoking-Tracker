@@ -16,13 +16,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import com.arlabs.uncloud.domain.model.Rank
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,7 +55,9 @@ import com.arlabs.uncloud.presentation.home.components.StatGrid
 fun HomeScreen(
         viewModel: HomeViewModel = hiltViewModel(),
         onNavigateToHealth: () -> Unit,
-        onNavigateToSettings: () -> Unit
+        onNavigateToSettings: () -> Unit,
+        onNavigateToRanking: () -> Unit,
+        onNavigateToPanic: () -> Unit
 ) {
         val state by viewModel.uiState.collectAsState()
         val scrollState = rememberScrollState()
@@ -113,7 +125,16 @@ fun HomeScreen(
                                                         contentDescription = "Share Streak",
                                                         tint = Color.White
                                                 )
+
                                         }
+// Panic button removed, moved to Bottom Navigation
+//                                        IconButton(onClick = onNavigateToRanking) {
+//                                            Icon(
+//                                                painter = painterResource(R.drawable.icon_timeline),
+//                                                contentDescription = "Rank",
+//                                                tint = Color.Unspecified
+//                                            )
+//                                        }
                                         IconButton(onClick = onNavigateToSettings) {
                                                 Icon(
                                                         imageVector = Icons.Default.Settings,
@@ -150,11 +171,19 @@ fun HomeScreen(
                                 // Header
                                 Spacer(modifier = Modifier.height(16.dp))
                                 HeroTimer(
-                                        days = state.daysSinceQuit,
+                                        years = state.yearsSinceQuit,
+                                        months = state.monthsSinceQuit,
+                                        days = state.timerDays,
                                         hours = state.hoursSinceQuit,
                                         minutes = state.minutesSinceQuit,
                                         seconds = state.secondsSinceQuit
                                 )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                state.currentRank?.let { rank ->
+                                    IdentityChip(rank = rank, onClick = onNavigateToRanking)
+                                }
 
                                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -202,4 +231,47 @@ fun HomeScreen(
                         }
                 }
         }
+}
+
+@Composable
+fun IdentityChip(
+    rank: Rank,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50)) // Pill shape
+            .background(Color(0xFF161B22))
+            .border(1.dp, Color(0xFF252A30), RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Icon
+        Icon(
+            painter = painterResource(R.drawable.icon_shield),
+            contentDescription = "Rank Shield",
+            tint = rank.color,
+            modifier = Modifier.size(16.dp)
+        )
+
+        // Text
+        Text(
+            text = rank.title.uppercase(),
+            color = rank.color,
+            style = androidx.compose.material3.MaterialTheme.typography.labelMedium.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+        )
+
+        // Arrow
+        Icon(
+            imageVector = androidx.compose.material.icons.Icons.Filled.ArrowForward,
+            contentDescription = "View Rank",
+            tint = Color.Gray,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }
