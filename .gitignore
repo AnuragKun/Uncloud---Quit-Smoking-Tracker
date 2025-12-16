@@ -13,3 +13,20 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Built application files
+*.apk
+*.aab
+*.ap_
+
+# Local configuration file (where your SDK path and Secrets go)
+
+# Gradle files
+.gradle/
+build/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
