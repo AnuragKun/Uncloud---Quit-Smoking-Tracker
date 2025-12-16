@@ -34,6 +34,7 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         val LAST_PLEDGE_DATE = stringPreferencesKey("last_pledge_date")
         val LIFETIME_CIGS = intPreferencesKey("lifetime_cigs")
         val LIFETIME_MONEY = doublePreferencesKey("lifetime_money")
+        val TRACKING_START_DATE = longPreferencesKey("tracking_start_date")
     }
 
     val userConfig: Flow<UserConfig?> =

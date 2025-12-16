@@ -42,4 +42,8 @@ sealed interface Screen {
     data object ReportBreach : Screen {
         override val route = "report_breach"
     }
+
+    data object Journal : Screen {
+        override val route = "journal"
+    }
 }

@@ -8,5 +8,6 @@ data class UserConfig(
         val quitTimestamp: Long,
         val currency: String = "$",
         val lifetimeCigarettes: Int = 0,
-        val lifetimeMoney: Double = 0.0
+        val lifetimeMoney: Double = 0.0,
+        val trackingStartDate: Long = quitTimestamp // Defaults to quitTimestamp for new/existing users
 )

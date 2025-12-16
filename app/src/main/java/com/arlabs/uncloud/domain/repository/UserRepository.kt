@@ -23,4 +23,5 @@ interface UserRepository {
 
     val breaches: Flow<List<com.arlabs.uncloud.domain.model.Breach>>
     suspend fun reportBreach(trigger: String, notes: String?)
+    suspend fun clearBreachesBefore(timestamp: Long)
 }

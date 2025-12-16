@@ -54,6 +54,13 @@ constructor(
                 // Ensure channel exists
                 notificationHelper.createNotificationChannel()
 
+                // Check for Rank Up!
+                val rank = com.arlabs.uncloud.domain.model.rankSystem.find { it.daysRequired.toLong() == daysSmokeFree }
+                if (rank != null) {
+                    notificationHelper.showRankNotification(rank.title, rank.description)
+                }
+
+                // Show Daily Motivation (Standard)
                 notificationHelper.showNotification(
                         title = title,
                         content = "\"${quote.text}\" - ${quote.author}"

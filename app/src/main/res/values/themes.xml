@@ -4,7 +4,7 @@
     <style name="Theme.QuitSmoking" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.QuitSmoking.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@android:color/black</item>
+        <item name="windowSplashScreenBackground">@color/splashscreen_color</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/icon_splashscreen</item>
         <item name="postSplashScreenTheme">@style/Theme.QuitSmoking</item>
 

@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
 class OnboardingViewModel
 @Inject
 constructor(
-        private val userRepository: UserRepository,
-        private val milestoneScheduler: com.arlabs.uncloud.domain.manager.MilestoneScheduler
+    private val userRepository: UserRepository,
+    private val milestoneScheduler: com.arlabs.uncloud.domain.manager.MilestoneScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -35,8 +35,7 @@ constructor(
     fun onEvent(event: OnboardingEvent) {
         when (event) {
             is OnboardingEvent.CigarettesPerDayChanged -> {
-                // Determine source for append/backspace logic if needed,
-                // but for now assume absolute value updates or implement helper
+                // Handled via AppendInput in new logic
             }
             is OnboardingEvent.AppendInput -> handleAppendInput(event.input)
             OnboardingEvent.BackspaceInput -> handleBackspaceInput()
@@ -60,14 +59,13 @@ constructor(
             when (state.currentStep) {
                 2 -> { // Cigarettes Per Day
                     val current = state.cigarettesPerDay
-                    // Avoid leading zeros or too long input
                     if (current.length < 3) {
                         state.copy(cigarettesPerDay = current + input)
                     } else state
                 }
                 3 -> { // Price Per Pack
                     val current = state.costPerPack
-                    if (current.length < 5) { // reasonable limit
+                    if (current.length < 5) {
                         state.copy(costPerPack = current + input)
                     } else state
                 }
@@ -75,7 +73,7 @@ constructor(
                     val current = state.cigarettesInPack
                     if (current.length < 3) {
                         state.copy(
-                                cigarettesInPack = if (current == "0") input else current + input
+                            cigarettesInPack = if (current == "0") input else current + input
                         )
                     } else state
                 }
@@ -83,7 +81,7 @@ constructor(
                     val current = state.minutesPerCigarette
                     if (current.length < 3) {
                         state.copy(
-                                minutesPerCigarette = if (current == "0") input else current + input
+                            minutesPerCigarette = if (current == "0") input else current + input
                         )
                     } else state
                 }
@@ -126,18 +124,18 @@ constructor(
         if (cigsPerDay != null && costPath != null && cigsInPack != null && minutesPerCig != null) {
             viewModelScope.launch {
                 val quitDateTime = LocalDateTime.of(state.quitDate, state.quitTime)
-                val quitTimestamp =
-                        quitDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val quitTimestamp = quitDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-                val config =
-                        UserConfig(
-                                cigarettesPerDay = cigsPerDay,
-                                costPerPack = costPath,
-                                cigarettesInPack = cigsInPack,
-                                minutesPerCigarette = minutesPerCig,
-                                quitTimestamp = quitTimestamp,
-                                currency = state.currency
-                        )
+                val config = UserConfig(
+                    cigarettesPerDay = cigsPerDay,
+                    costPerPack = costPath,
+                    cigarettesInPack = cigsInPack,
+                    minutesPerCigarette = minutesPerCig,
+
+                    quitTimestamp = quitTimestamp,
+                    currency = state.currency,
+                    trackingStartDate = quitTimestamp // Initialize tracking start date
+                )
                 userRepository.saveUserConfig(config)
                 milestoneScheduler.scheduleMilestones(quitTimestamp)
                 _navigationEvent.send(Screen.Home.route)
@@ -147,17 +145,16 @@ constructor(
 }
 
 data class OnboardingUiState(
-        val currentStep: Int = 0,
-        val cigarettesPerDay: String = "",
-        val costPerPack: String = "",
-        val cigarettesInPack: String = "",
-        val minutesPerCigarette: String = "",
-        val quitDate: LocalDate = LocalDate.now(),
-        val quitTime: LocalTime = LocalTime.now(),
-        val currency: String = "$",
-        val isLoading: Boolean = false
+    val currentStep: Int = 0,
+    val cigarettesPerDay: String = "",
+    val costPerPack: String = "",
+    val cigarettesInPack: String = "",
+    val minutesPerCigarette: String = "",
+    val quitDate: LocalDate = LocalDate.now(),
+    val quitTime: LocalTime = LocalTime.now(),
+    val currency: String = "$",
+    val isLoading: Boolean = false
 ) {
-    // Computed properties for the breakdown projection screen
     val projectedCigarettesAvoided: Int
         get() = (cigarettesPerDay.toIntOrNull() ?: 0) * 30
 
@@ -165,7 +162,7 @@ data class OnboardingUiState(
         get() {
             val cigsPerDay = cigarettesPerDay.toDoubleOrNull() ?: 0.0
             val cost = costPerPack.toDoubleOrNull() ?: 0.0
-            val packSize = cigarettesInPack.toDoubleOrNull() ?: 1.0 // avoid div by zero
+            val packSize = cigarettesInPack.toDoubleOrNull() ?: 1.0
             if (packSize == 0.0) return 0.0
             val costPerCig = cost / packSize
             return cigsPerDay * costPerCig * 30

@@ -177,6 +177,7 @@ constructor(
                     currentMilestone = nextMilestone ?: milestones.last(),
                     milestoneProgress = progress,
                     totalMilestones = milestones.size,
+                    completedMilestones = milestones.count { it.durationSeconds <= totalSeconds },
                     currentRank = rankSystem.lastOrNull { it.daysRequired <= totalDays } ?: rankSystem.first()
             )
         }
@@ -203,7 +204,8 @@ constructor(
                         oneDay = dailyValue,
                         oneWeek = dailyValue * 7,
                         oneMonth = dailyValue * 30,
-                        oneYear = dailyValue * 365
+                        oneYear = dailyValue * 365,
+                        fiveYears = dailyValue * 365 * 5
                 )
 
         _uiState.update { it.copy(selectedStatType = type, projectedStats = projections) }
@@ -248,7 +250,8 @@ data class ProjectedStats(
         val oneDay: Double,
         val oneWeek: Double,
         val oneMonth: Double,
-        val oneYear: Double
+        val oneYear: Double,
+        val fiveYears: Double
 )
 
 data class HomeUiState(

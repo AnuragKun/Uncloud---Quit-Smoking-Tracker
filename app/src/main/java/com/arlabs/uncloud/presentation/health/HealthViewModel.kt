@@ -21,8 +21,8 @@ import kotlinx.coroutines.launch
 class HealthViewModel
 @Inject
 constructor(
-        private val userRepository: UserRepository,
-        private val healthRepository: HealthRepository
+    private val userRepository: UserRepository,
+    private val healthRepository: HealthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HealthUiState())
@@ -30,7 +30,7 @@ constructor(
 
     private val milestones by lazy { healthRepository.getMilestones() }
     private val dateFormatter =
-            DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(ZoneId.systemDefault())
+        DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(ZoneId.systemDefault())
 
     init {
         observeUserConfig()
@@ -65,100 +65,112 @@ constructor(
         val diffSeconds = (now - quitTime) / 1000
 
         val uiModels =
-                milestones.map { milestone ->
-                    val isCompleted = diffSeconds >= milestone.durationSeconds
+            milestones.map { milestone ->
+                val isCompleted = diffSeconds >= milestone.durationSeconds
 
-                    // If completed, show achieved date
-                    val achievedDate =
-                            if (isCompleted) {
-                                val achievedInstant =
-                                        Instant.ofEpochMilli(
-                                                quitTime + (milestone.durationSeconds * 1000)
-                                        )
-                                dateFormatter.format(achievedInstant)
-                            } else null
+                // If completed, show achieved date
+                val achievedDate =
+                    if (isCompleted) {
+                        val achievedInstant =
+                            Instant.ofEpochMilli(
+                                quitTime + (milestone.durationSeconds * 1000)
+                            )
+                        dateFormatter.format(achievedInstant)
+                    } else null
 
-                    // If not completed, show due time text
-                    val dueTimeText =
-                            if (!isCompleted) {
-                                val remainingSeconds = milestone.durationSeconds - diffSeconds
-                                formatRemainingTime(remainingSeconds)
-                            } else null
+                // If not completed, show due time text
+                val dueTimeText =
+                    if (!isCompleted) {
+                        val remainingSeconds = milestone.durationSeconds - diffSeconds
+                        formatRemainingTime(remainingSeconds)
+                    } else null
 
-                    // Progress for in-progress: Only relevant for the *first* uncompleted item?
-                    // Or maybe calculate percentage progress for *all*?
-                    // Let's stick to the list logic:
-                    // 1. Completed
-                    // 2. In Progress (The one we are currently working on)
-                    // 3. Locked (Future)
+                HealthMilestoneUiModel(
+                    milestone = milestone,
+                    isCompleted = isCompleted,
+                    achievedDate = achievedDate,
+                    dueTimeText = dueTimeText,
+                    progress = 0f
+                )
+            }
 
-                    // Wait, mapping is purely state based. The distinction between
-                    // InProgress/Locked depends on list order.
-                    // But we can determine if it's the *active* one by checking if it's the first
-                    // uncompleted one.
-
-                    HealthMilestoneUiModel(
-                            milestone = milestone,
-                            isCompleted = isCompleted,
-                            achievedDate = achievedDate,
-                            dueTimeText = dueTimeText,
-                            progress = 0f // Will verify logic in next step
-                    )
-                }
-
-        // Logic to determine "In Progress" and its progress
+        // Logic to determine "In Progress"
         val firstUncompletedIndex = uiModels.indexOfFirst { !it.isCompleted }
 
         val finalModels =
-                uiModels.mapIndexed { index, model ->
-                    if (index == firstUncompletedIndex) {
-                        // Calculate progress
-                        val previousSeconds =
-                                if (index > 0) milestones[index - 1].durationSeconds else 0L
-                        val targetSeconds = model.milestone.durationSeconds
-                        val totalRange = targetSeconds - previousSeconds
-                        val elapsedInRange = diffSeconds - previousSeconds
-                        val progress =
-                                (elapsedInRange.toDouble() / totalRange)
-                                        .coerceIn(0.0, 1.0)
-                                        .toFloat()
+            uiModels.mapIndexed { index, model ->
+                if (index == firstUncompletedIndex) {
+                    // Calculate progress
+                    val previousSeconds =
+                        if (index > 0) milestones[index - 1].durationSeconds else 0L
+                    val targetSeconds = model.milestone.durationSeconds
+                    val totalRange = targetSeconds - previousSeconds
+                    val elapsedInRange = diffSeconds - previousSeconds
+                    val progress =
+                        (elapsedInRange.toDouble() / totalRange)
+                            .coerceIn(0.0, 1.0)
+                            .toFloat()
 
-                        model.copy(status = MilestoneStatus.IN_PROGRESS, progress = progress)
-                    } else if (model.isCompleted) {
-                        model.copy(status = MilestoneStatus.COMPLETED, progress = 1f)
-                    } else {
-                        model.copy(status = MilestoneStatus.LOCKED, progress = 0f)
-                    }
+                    model.copy(status = MilestoneStatus.IN_PROGRESS, progress = progress)
+                } else if (model.isCompleted) {
+                    model.copy(status = MilestoneStatus.COMPLETED, progress = 1f)
+                } else {
+                    model.copy(status = MilestoneStatus.LOCKED, progress = 0f)
                 }
+            }
 
         _uiState.update { it.copy(userConfig = config, milestones = finalModels) }
     }
 
     private fun formatRemainingTime(seconds: Long): String {
-        val days = seconds / (24 * 3600)
-        val hours = (seconds % (24 * 3600)) / 3600
+        // Constants for estimation
+        val secPerDay = 24 * 3600L
+        val secPerMonth = 30 * secPerDay // Approx 30 days
+        val secPerYear = 365 * secPerDay // Approx 365 days
+
+        val years = seconds / secPerYear
+        val remainingAfterYears = seconds % secPerYear
+
+        val months = remainingAfterYears / secPerMonth
+        val remainingAfterMonths = remainingAfterYears % secPerMonth
+
+        val days = remainingAfterMonths / secPerDay
+        val hours = (seconds % secPerDay) / 3600
         val minutes = (seconds % 3600) / 60
 
         return when {
-            days > 0 -> "Due in $days days"
-            hours > 0 -> "Due in $hours hours"
-            else -> "Due in $minutes mins"
+            years > 0 -> {
+                // Example: "1 YEAR 2 MOS 5 DAYS"
+                val yStr = "$years YEAR${if (years > 1) "S" else ""}"
+                val mStr = if (months > 0) " $months MO${if (months > 1) "S" else ""}" else ""
+                val dStr = if (days > 0) " $days DAY${if (days > 1) "S" else ""}" else ""
+                "$yStr$mStr$dStr"
+            }
+            months > 0 -> {
+                // Example: "5 MOS 2 DAYS"
+                val mStr = "$months MO${if (months > 1) "S" else ""}"
+                val dStr = if (days > 0) " $days DAY${if (days > 1) "S" else ""}" else ""
+                "$mStr$dStr"
+            }
+            days > 0 -> "$days DAY${if (days > 1) "S" else ""}"
+            hours > 0 -> "$hours HR${if (hours > 1) "S" else ""}"
+            else -> "$minutes MIN${if (minutes > 1) "S" else ""}"
         }
     }
 }
 
 data class HealthUiState(
-        val userConfig: UserConfig? = null,
-        val milestones: List<HealthMilestoneUiModel> = emptyList()
+    val userConfig: UserConfig? = null,
+    val milestones: List<HealthMilestoneUiModel> = emptyList()
 )
 
 data class HealthMilestoneUiModel(
-        val milestone: HealthMilestone,
-        val status: MilestoneStatus = MilestoneStatus.LOCKED,
-        val isCompleted: Boolean,
-        val achievedDate: String? = null,
-        val dueTimeText: String? = null,
-        val progress: Float = 0f
+    val milestone: HealthMilestone,
+    val status: MilestoneStatus = MilestoneStatus.LOCKED,
+    val isCompleted: Boolean,
+    val achievedDate: String? = null,
+    val dueTimeText: String? = null,
+    val progress: Float = 0f
 )
 
 enum class MilestoneStatus {

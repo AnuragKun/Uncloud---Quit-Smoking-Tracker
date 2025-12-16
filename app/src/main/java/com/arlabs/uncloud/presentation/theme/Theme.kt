@@ -48,5 +48,20 @@ fun QuitSmokingTheme(
                 else -> LightColorScheme
             }
 
+    val view = LocalContext.current // Wait, LocalView is better for WindowCompat
+    // Actually, checking implementation of LocalView
+    val localView = androidx.compose.ui.platform.LocalView.current
+    if (!localView.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val window = (localView.context as android.app.Activity).window
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            androidx.core.view.WindowCompat.getInsetsController(window, localView).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
+        }
+    }
+
     MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
 }

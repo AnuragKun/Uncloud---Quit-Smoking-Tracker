@@ -10,6 +10,7 @@ import javax.inject.Inject
 class QuitSmokingApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject lateinit var dailyMotivationScheduler: com.arlabs.uncloud.domain.manager.DailyMotivationScheduler
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
@@ -17,6 +18,9 @@ class QuitSmokingApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         enqueueWidgetUpdates()
+        
+        // Schedule Daily Motivation (Default 9:00 AM, KEEP policy to respect user changes)
+        dailyMotivationScheduler.schedule(9, 0, androidx.work.ExistingPeriodicWorkPolicy.KEEP)
     }
 
     private fun enqueueWidgetUpdates() {
@@ -29,20 +33,7 @@ class QuitSmokingApp : Application(), Configuration.Provider {
             androidx.work.ExistingPeriodicWorkPolicy.KEEP,
             request
         )
-        
-        enqueueDailyNotifications()
     }
-
-    private fun enqueueDailyNotifications() {
-        // Daily Motivation (Every 24 hours)
-        val motivationRequest = androidx.work.PeriodicWorkRequestBuilder<com.arlabs.uncloud.worker.DailyMotivationWorker>(
-            24, java.util.concurrent.TimeUnit.HOURS
-        ).build()
-
-        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "DailyMotivationWork",
-            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
-            motivationRequest
-        )
-    }
+    
+    // Removed raw enqueueDailyNotifications as it's handled by scheduler now
 }

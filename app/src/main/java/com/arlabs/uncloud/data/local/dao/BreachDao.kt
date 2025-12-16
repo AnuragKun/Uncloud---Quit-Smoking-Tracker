@@ -17,4 +17,10 @@ interface BreachDao {
     
     @Query("SELECT * FROM breaches WHERE timestamp >= :startTime ORDER BY timestamp DESC")
     fun getBreachesAfter(startTime: Long): Flow<List<Breach>>
+
+    @Query("DELETE FROM breaches WHERE timestamp < :timestamp")
+    suspend fun deleteBreachesBefore(timestamp: Long)
+
+    @Query("DELETE FROM breaches")
+    suspend fun deleteAll()
 }

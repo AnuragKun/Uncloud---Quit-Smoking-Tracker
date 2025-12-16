@@ -56,7 +56,7 @@ class DailyPledgeWidget : GlanceAppWidget() {
         // 1. Fetch Data (Pledge State + User Config for Streak)
         val lastPledgeDate = repo.pledgeState.first()
         val userConfig = repo.userConfig.first()
-        
+
         val today = LocalDate.now().toString()
         val isPledged = (lastPledgeDate == today)
 
@@ -74,153 +74,190 @@ class DailyPledgeWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            DailyPledgeContent(isPledged, streakDayCount)
+            DailyPledgeContent(isPledged, streakDayCount, userConfig)
         }
     }
 
     @Composable
-    private fun DailyPledgeContent(isPledged: Boolean, streakDayCount: Long) {
-        // --- COLORS ---
-        val bgDark = ColorProvider(day = Color(0xFF0F1216), night = Color(0xFF0F1216))
-        val borderGray = ColorProvider(day = Color(0xFF252A30), night = Color(0xFF252A30))
-        val textGray = ColorProvider(day = Color(0xFF8B9BB4), night = Color(0xFF8B9BB4))
-        
-        // Brand Colors
-        val cyanColor = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
-        val greenColor = ColorProvider(day = Color(0xFF2E8B57), night = Color(0xFF2E8B57))
-        val whiteColor = ColorProvider(day = Color.White, night = Color.White)
+    private fun DailyPledgeContent(isPledged: Boolean, streakDayCount: Long, userConfig: com.arlabs.uncloud.domain.model.UserConfig?) {
+        // --- CYBERPUNK PALETTE ---
+        val bgMatte = ColorProvider(day = Color(0xFF090B0F), night = Color(0xFF090B0F))
+        val cyanNeon = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
+        val greenNeon = ColorProvider(day = Color(0xFF00E676), night = Color(0xFF00E676)) // Bright Green
+        val redAlert = ColorProvider(day = Color(0xFFFF2B2B), night = Color(0xFFFF2B2B))
+        val textDim = ColorProvider(day = Color(0xFF546E7A), night = Color(0xFF546E7A))
+        val textBright = ColorProvider(day = Color(0xFFE0E0E0), night = Color(0xFFE0E0E0))
         val blackColor = ColorProvider(day = Color.Black, night = Color.Black)
-        val alertRed = ColorProvider(day = Color(0xFFEF5350), night = Color(0xFFEF5350))
 
-        // Border Logic
-        val borderColor = if (isPledged) greenColor else borderGray
+        // State Colors
+        val statusColor = if (isPledged) greenNeon else redAlert
+        val borderColor = cyanNeon // Always Cyan border for the "Terminal" look
 
         val context = LocalContext.current
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        // 1. CONTAINER
+        // 1. TERMINAL CONTAINER
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .background(borderColor)
-                .cornerRadius(16.dp)
-                .padding(1.dp)
-                .clickable(actionStartActivity(intent)), // Navigate on tap
+                .padding(2.dp) // Thin Cyan Border
+                .cornerRadius(12.dp)
+                .clickable(actionStartActivity(intent)),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(bgDark)
-                    .cornerRadius(15.dp)
-                    .padding(16.dp), // Increased Padding for internal breathing room
-                contentAlignment = Alignment.TopCenter
+                    .background(bgMatte)
+                    .cornerRadius(10.dp) // Slightly smaller radius to fit inside
+                    .padding(12.dp),
+                contentAlignment = Alignment.TopStart
             ) {
-                 Column(
-                    modifier = GlanceModifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                 ) {
-                     // 2. HEADER
-                     Text(
-                         text = "DAILY PLEDGE",
-                         style = TextStyle(
-                             color = textGray,
-                             fontSize = 10.sp,
-                             fontWeight = FontWeight.Bold
-                         )
-                     )
-
-                     Spacer(modifier = GlanceModifier.defaultWeight())
-
-                     // 3. MAIN CONTENT (Interactive Zone)
-                     if (isPledged) {
-                         // --- PLEDGED STATE ---
-                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                             Box(
-                                 modifier = GlanceModifier
-                                     .background(greenColor)
-                                     .cornerRadius(24.dp)
-                                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                             ) {
-                                 Text(
-                                     text = "✓ DAY SECURED",
-                                     style = TextStyle(
-                                         color = whiteColor,
-                                         fontWeight = FontWeight.Bold,
-                                         fontSize = 14.sp,
-                                         textAlign = TextAlign.Center
-                                     )
-                                 )
-                             }
-                             Spacer(modifier = GlanceModifier.height(8.dp))
-                             Text(
-                                 text = "Freedom Chosen.",
-                                 style = TextStyle(color = textGray, fontSize = 11.sp)
-                             )
-                         }
-                     } else {
-                         // --- UNPLEDGED STATE ---
-                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                             Text(
-                                 text = "Make the choice.",
-                                 style = TextStyle(
-                                     color = textGray,
-                                     fontSize = 12.sp
-                                 ),
-                                 modifier = GlanceModifier.padding(bottom = 12.dp)
-                             )
-                             
-                             // Big Action Button
-                             Box(
-                                 modifier = GlanceModifier
-                                     .fillMaxWidth()
-                                     .height(44.dp) // Taller button
-                                     .background(cyanColor)
-                                     .cornerRadius(12.dp)
-                                     .clickable(actionRunCallback<PledgeAction>()),
-                                 contentAlignment = Alignment.Center
-                             ) {
-                                  Text(
-                                     text = "I COMMIT",
-                                     style = TextStyle(
-                                         color = blackColor,
-                                         fontWeight = FontWeight.Bold,
-                                         fontSize = 14.sp
-                                     )
-                                 )
-                             }
-                         }
-                     }
-
-                     Spacer(modifier = GlanceModifier.defaultWeight())
-
-                     // 4. FOOTER (Streak Info)
-                     // A nice divider or subtle container for the streak
-                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                         // Divider Line
+                Column(
+                    modifier = GlanceModifier.fillMaxSize()
+                ) {
+                    // 2. HEADER: TERMINAL ID
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "COMMAND :: DAILY_PROTOCOL",
+                            style = TextStyle(
+                                color = cyanNeon, // Cyan Header
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        // Blinking Dot or Status Indicator
                          Box(
-                             modifier = GlanceModifier
-                                 .width(40.dp) // Fixed width for center line
-                                 .height(1.dp)
-                                 .background(borderGray)
-                         ) {}
-                         
-                         Spacer(modifier = GlanceModifier.height(8.dp))
-                         
-                         val streakColor = if (isPledged) greenColor else whiteColor
-                         Text(
-                             text = "🎗️ $streakDayCount Days Unclouded",
-                             style = TextStyle(
-                                 color = streakColor,
-                                 fontSize = 12.sp,
-                                 fontWeight = FontWeight.Bold,
-                                 textAlign = TextAlign.Center
-                             )
-                         )
-                     }
-                 }
+                            modifier = GlanceModifier
+                                .width(6.dp)
+                                .height(6.dp)
+                                .background(statusColor)
+                                .cornerRadius(3.dp)
+                        ) {}
+                    }
+
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+
+                    // 3. CENTRAL HUD
+                    Column(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isPledged) {
+                            // --- SECURED STATE ---
+                            Text(
+                                text = "[ SECURED ]",
+                                style = TextStyle(
+                                    color = greenNeon,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                            Spacer(modifier = GlanceModifier.height(4.dp))
+                            Text(
+                                text = "PROTOCOL SUCCESSFUL",
+                                style = TextStyle(
+                                    color = textDim,
+                                    fontSize = 10.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                        } else {
+                            // --- ALERT STATE ---
+                            Text(
+                                text = "⚠ ATTENTION REQUIRED",
+                                style = TextStyle(
+                                    color = redAlert,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Spacer(modifier = GlanceModifier.height(8.dp))
+                            
+                            // INITIATE BUTTON
+                            Box(
+                                modifier = GlanceModifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .background(cyanNeon)
+                                    .cornerRadius(4.dp) // Sharp corners for tech feel
+                                    .clickable(actionRunCallback<PledgeAction>()),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = ">> INITIATE PLEDGE",
+                                    style = TextStyle(
+                                        color = blackColor,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+
+                    // 4. FOOTER: DATA GRID
+                    // Simulating a grid with Columns
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // DATA 1: UPTIME
+                        Column(modifier = GlanceModifier.defaultWeight()) {
+                            Text(
+                                text = "UPTIME",
+                                style = TextStyle(color = textDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            )
+                            val dayLabel = if (streakDayCount == 1L) "DAY" else "DAYS"
+                            Text(
+                                text = "$streakDayCount $dayLabel", // e.g. "124 DAYS"
+                                style = TextStyle(color = textBright, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        // Vertical Separator
+                        Box(
+                            modifier = GlanceModifier
+                                .width(1.dp)
+                                .height(20.dp)
+                                .background(textDim)
+                        ) {}
+                        
+                        Spacer(modifier = GlanceModifier.width(12.dp))
+
+                        // DATA 2: RESOURCES
+                        Column(modifier = GlanceModifier.defaultWeight()) {
+                            Text(
+                                text = "RESOURCES",
+                                style = TextStyle(color = textDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            )
+                            
+                            val currency = userConfig?.currency ?: "$"
+                            val cigsPerDay = userConfig?.cigarettesPerDay ?: 20
+                            val costPerPack = userConfig?.costPerPack ?: 10.0
+                            val cigsInPack = userConfig?.cigarettesInPack ?: 20
+                            
+                            // Calculate
+                            val cigsSaved = (streakDayCount * cigsPerDay).toLong()
+                            val moneySaved = if (cigsInPack > 0) (cigsSaved * (costPerPack / cigsInPack)).toInt() else 0
+
+                            Text(
+                                text = "$currency$moneySaved \nSAVED",
+                                style = TextStyle(color = textBright, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -239,6 +276,7 @@ class PledgeAction : ActionCallback {
         val entryPoint =
             EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val repo = entryPoint.userRepository
+        val quoteManager = entryPoint.quoteManager
 
         // Save State
         val today = LocalDate.now().toString()
@@ -246,6 +284,25 @@ class PledgeAction : ActionCallback {
 
         // Force update
         DailyPledgeWidget().update(context, glanceId)
+
+        // Show Motivation Notification
+        val userConfig = repo.userConfig.first()
+        if (userConfig != null) {
+            val quitDate = java.time.Instant.ofEpochMilli(userConfig.quitTimestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            val todayDate = LocalDate.now()
+            val streakDays = ChronoUnit.DAYS.between(quitDate, todayDate)
+
+            val quote = quoteManager.getDailyQuote()
+
+            val title = if (streakDays > 0) "Day $streakDays Smoke Free! \uD83D\uDD25" else "Pledge Secured! \uD83D\uDD25"
+            val content = "\"${quote.text}\" - ${quote.author}"
+
+            val notificationHelper = com.arlabs.uncloud.presentation.util.NotificationHelper(context)
+            notificationHelper.createNotificationChannel()
+            notificationHelper.showNotification(title, content)
+        }
     }
 }
 

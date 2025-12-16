@@ -18,11 +18,14 @@ import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -39,88 +42,109 @@ class EmergencyShieldWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            // Theme Colors
-            val bgDark = ColorProvider(day = Color(0xFF0F1216), night = Color(0xFF0F1216))
-            val borderGray = ColorProvider(day = Color(0xFF252A30), night = Color(0xFF252A30))
-            val headerText = ColorProvider(day = Color(0xFF8B9BB4), night = Color(0xFF8B9BB4))
-
-            // Button Specific Colors
-            val bezelColor = ColorProvider(day = Color(0xFF1E2429), night = Color(0xFF1E2429))
-            val gapColor = ColorProvider(day = Color(0xFF0A0C0E), night = Color(0xFF0A0C0E)) // Very dark for depth
-            val alertRed = ColorProvider(day = Color(0xFFD32F2F), night = Color(0xFFD32F2F))
+            // --- CYBERPUNK PALETTE ---
+            val bgMatte = ColorProvider(day = Color(0xFF090B0F), night = Color(0xFF090B0F))
+            val cyanNeon = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
+            val redAlert = ColorProvider(day = Color(0xFFFF2B2B), night = Color(0xFFFF2B2B))
             val white = ColorProvider(day = Color.White, night = Color.White)
+            val textDim = ColorProvider(day = Color(0xFF546E7A), night = Color(0xFF546E7A))
 
-            // 1. MAIN CARD (The Housing)
+            // Button Colors
+            val bezelColor = ColorProvider(day = Color(0xFF1E2429), night = Color(0xFF1E2429))
+
+            // 1. TERMINAL CONTAINER
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(borderGray)
-                    .cornerRadius(16.dp)
-                    .padding(1.dp),
+                    .background(cyanNeon) // Border
+                    .cornerRadius(12.dp)
+                    .padding(2.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(bgDark)
-                        .cornerRadius(15.dp)
+                        .background(bgMatte)
+                        .cornerRadius(10.dp)
                         .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
+                        // FIX: Added fillMaxSize() so the spacers inside have room to expand
+                        modifier = GlanceModifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // 2. HEADER (System Alert Style)
-                        Text(
-                            text = "E M E R G E N C Y", // Simulated tracking
-                            style = TextStyle(
-                                color = headerText,
-                                fontSize = 9.sp, // Smaller, tighter
-                                fontWeight = FontWeight.Bold
+                        // 2. HEADER
+                        Row(
+                            modifier = GlanceModifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "COMMAND :: PANIC_PROTOCOL",
+                                style = TextStyle(
+                                    color = cyanNeon,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
 
-                        Spacer(modifier = GlanceModifier.height(12.dp))
+                            // Horizontal Spacer for the Row
+                            Spacer(modifier = GlanceModifier.defaultWeight())
+
+                            // Blinking Red Dot
+                            Box(
+                                modifier = GlanceModifier
+                                    .width(6.dp)
+                                    .height(6.dp)
+                                    .background(redAlert)
+                                    .cornerRadius(3.dp)
+                            ) {}
+                        }
+
+                        // Spacer 1: Pushes button down from header
+                        Spacer(modifier = GlanceModifier.defaultWeight())
 
                         // 3. THE BUTTON ASSEMBLY
-                        // Layer 1: The Outer Bezel (The mount)
                         Box(
                             modifier = GlanceModifier
-                                .size(84.dp)
+                                .size(80.dp)
                                 .background(bezelColor)
-                                .cornerRadius(42.dp)
+                                .cornerRadius(40.dp)
                                 .clickable(actionStartActivity(intent)),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Layer 2: The "Gap" (Creates 3D depth/shadow effect)
+                            // Layer 2: The Red Core
                             Box(
                                 modifier = GlanceModifier
-                                    .size(82.dp) // 1dp gap all around
-                                    .background(gapColor)
-                                    .cornerRadius(41.dp),
+                                    .size(60.dp)
+                                    .background(redAlert)
+                                    .cornerRadius(30.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Layer 3: The Actual Button (Red)
-                                Box(
-                                    modifier = GlanceModifier
-                                        .size(68.dp)
-                                        .background(alertRed)
-                                        .cornerRadius(34.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // Layer 4: The Icon/Text
-                                    Text(
-                                        text = "SOS",
-                                        style = TextStyle(
-                                            color = white,
-                                            fontSize = 22.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center
-                                        )
+                                // Layer 3: The Icon/Text
+                                Text(
+                                    text = "SOS",
+                                    style = TextStyle(
+                                        color = white,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
                                     )
-                                }
+                                )
                             }
                         }
+
+                        // Spacer 2: Pushes footer down (Balancing the button in the middle)
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+
+                        Text(
+                            text = "STATUS: STANDBY",
+                            style = TextStyle(
+                                color = textDim,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                     }
                 }
             }

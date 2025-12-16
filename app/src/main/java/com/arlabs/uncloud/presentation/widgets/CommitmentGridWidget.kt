@@ -24,6 +24,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -52,7 +53,7 @@ class CommitmentGridWidget : GlanceAppWidget() {
         val repo = entryPoint.userRepository
         val userConfig = repo.userConfig.first()
         // Fetch breaches for history check
-        val breaches = repo.breaches.first() 
+        val breaches = repo.breaches.first()
         val quitTimestamp = userConfig?.quitTimestamp ?: 0L
 
         val daysSinceQuit = if (quitTimestamp > 0L) {
@@ -65,24 +66,35 @@ class CommitmentGridWidget : GlanceAppWidget() {
             -1L
         }
 
+        val trackingStartTimestamp = userConfig?.trackingStartDate ?: quitTimestamp
+        val trackingStartDate = if (trackingStartTimestamp > 0L) {
+             java.time.Instant.ofEpochMilli(trackingStartTimestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        } else {
+            java.time.Instant.ofEpochMilli(quitTimestamp) // Fallback
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }
+
         // Calculate Money Saved (Lifetime + Current)
         // Note: The UI currently shows "TOTAL Saved", which logic says should be lifetime + current streak.
         // If we want to show JUST current streak money, we stick to logic.
         // User requirements say "Lifetime Stats: Keep showing Money Saved". So we should sum them up?
         // Or "Money Saved ... since they started using the app".
         // Let's use lifetimeMoney + currentStreakMoney for the widget display if available.
-        
+
         val currentStreakMoney = if (daysSinceQuit > 0 && userConfig != null) {
              val costPerCig = if (userConfig.cigarettesInPack > 0) userConfig.costPerPack / userConfig.cigarettesInPack else 0.0
              val dailyCost = userConfig.cigarettesPerDay * costPerCig
              daysSinceQuit * dailyCost
         } else 0.0
-        
+
         val totalMoneySaved = (userConfig?.lifetimeMoney ?: 0.0) + currentStreakMoney
 
         // Calculate Rank
         val totalDaysSaved = (userConfig?.lifetimeCigarettes ?: 0) // Rank is based on clean time usually...
-        // Wait, rank description says "Rank (The Identity): DOWNGRADES". 
+        // Wait, rank description says "Rank (The Identity): DOWNGRADES".
         // So rank follows current streak.
         val currentRank = if (daysSinceQuit >= 0) {
             rankSystem.lastOrNull { it.daysRequired <= daysSinceQuit } ?: rankSystem.first()
@@ -92,39 +104,38 @@ class CommitmentGridWidget : GlanceAppWidget() {
 
         provideContent {
             // Convert breaches to LocalDate set for easier checking
-            val breachDates = breaches.map { 
+            val breachDates = breaches.map {
                 java.time.Instant.ofEpochMilli(it.timestamp)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
             }.toSet()
-            
-            CommitmentGridContent(daysSinceQuit, totalMoneySaved, currentRank?.title, userConfig?.currency ?: "$", breachDates)
+
+            CommitmentGridContent(daysSinceQuit, totalMoneySaved, currentRank?.title, userConfig?.currency ?: "$", breachDates, trackingStartDate)
         }
     }
 
     @SuppressLint("RestrictedApi")
     @Composable
-    private fun CommitmentGridContent(daysSinceQuit: Long, moneySaved: Double, rankTitle: String?, currencySymbol: String, breachDates: Set<LocalDate>) {
-        // Safe Colors
-        val bgDark = ColorProvider(day = Color(0xFF0F1216), night = Color(0xFF0F1216))
-        val borderGray = ColorProvider(day = Color(0xFF252A30), night = Color(0xFF252A30))
-        val textGray = ColorProvider(day = Color(0xFF8B9BB4), night = Color(0xFF8B9BB4))
-        val accentCyan = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
-        val pillBg = ColorProvider(day = Color(0xFF1E2429), night = Color(0xFF1E2429))
-        val whiteColor = ColorProvider(day = Color.White, night = Color.White)
-
+    private fun CommitmentGridContent(daysSinceQuit: Long, moneySaved: Double, rankTitle: String?, currencySymbol: String, breachDates: Set<LocalDate>, trackingStartDate: LocalDate) {
+        // --- CYBERPUNK PALETTE ---
+        val bgMatte = ColorProvider(day = Color(0xFF090B0F), night = Color(0xFF090B0F))
+        val cyanNeon = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
+        val textDim = ColorProvider(day = Color(0xFF546E7A), night = Color(0xFF546E7A))
+        val textBright = ColorProvider(day = Color(0xFFE0E0E0), night = Color(0xFFE0E0E0)) // Bright for Quote
+        val greenNeon = ColorProvider(day = Color(0xFF00E676), night = Color(0xFF00E676))
+        
         val context = LocalContext.current
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        // 1. OUTER BOX (Border)
+        // 1. TERMINAL CONTAINER
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(borderGray)
-                .cornerRadius(16.dp)
-                .padding(1.dp)
+                .background(cyanNeon) // Border
+                .cornerRadius(12.dp)
+                .padding(2.dp)
                 .clickable(actionStartActivity(intent)), // Navigate on tap
             contentAlignment = Alignment.Center
         ) {
@@ -132,8 +143,8 @@ class CommitmentGridWidget : GlanceAppWidget() {
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(bgDark)
-                    .cornerRadius(15.dp)
+                    .background(bgMatte)
+                    .cornerRadius(10.dp)
                     .padding(12.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -141,8 +152,8 @@ class CommitmentGridWidget : GlanceAppWidget() {
                     // Empty State
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Start Your Journey",
-                            style = TextStyle(color = whiteColor, fontSize = 14.sp)
+                            text = "AWAITING PROTOCOL...",
+                            style = TextStyle(color = textDim, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         )
                     }
                 } else {
@@ -159,28 +170,28 @@ class CommitmentGridWidget : GlanceAppWidget() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "LAST 14 DAYS",
+                                text = "COMMAND :: VISUAL_LOG",
                                 style = TextStyle(
-                                    color = textGray,
+                                    color = cyanNeon,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
-                            
+
                             Spacer(modifier = GlanceModifier.defaultWeight())
 
                             // Rank Badge
                             if (rankTitle != null) {
                                 Box(
                                     modifier = GlanceModifier
-                                        .background(pillBg)
+                                        .background(ColorProvider(day = Color(0xFF1E2429), night = Color(0xFF1E2429))) // Dark pill
                                         .cornerRadius(4.dp)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
                                         text = rankTitle.uppercase(),
                                         style = TextStyle(
-                                            color = accentCyan,
+                                            color = greenNeon,
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -206,7 +217,7 @@ class CommitmentGridWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            GridRow(startIndex = 13, count = 7, daysSinceQuit = daysSinceQuit, breachDates = breachDates)
+                            GridRow(startIndex = 13, count = 7, daysSinceQuit = daysSinceQuit, breachDates = breachDates, hasHistory = (daysSinceQuit > 0) || (moneySaved > 0), trackingStartDate = trackingStartDate)
                         }
 
                         Spacer(modifier = GlanceModifier.height(4.dp))
@@ -216,7 +227,7 @@ class CommitmentGridWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            GridRow(startIndex = 6, count = 7, daysSinceQuit = daysSinceQuit, breachDates = breachDates)
+                            GridRow(startIndex = 6, count = 7, daysSinceQuit = daysSinceQuit, breachDates = breachDates, hasHistory = (daysSinceQuit > 0) || (moneySaved > 0), trackingStartDate = trackingStartDate)
                         }
 
                         Spacer(modifier = GlanceModifier.defaultWeight())
@@ -226,41 +237,39 @@ class CommitmentGridWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Money Saved Pill
-                            Box(
-                                modifier = GlanceModifier
-                                    .background(ColorProvider(day = Color(0xFF1A1D21), night = Color(0xFF1A1D21))) 
-                                    .cornerRadius(12.dp)
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "Saved ",
-                                        style = TextStyle(color = textGray, fontSize = 10.sp)
-                                    )
-                                    Text(
-                                        text = "$currencySymbol${String.format("%.0f", moneySaved)}",
-                                        style = TextStyle(
-                                            color = whiteColor,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
-                            }
-                            
-                            Spacer(modifier = GlanceModifier.defaultWeight())
-
-                            // Streak
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Money Saved
+                             Column(modifier = GlanceModifier.defaultWeight()) {
                                 Text(
-                                    text = "Streak: ",
-                                    style = TextStyle(color = textGray, fontSize = 12.sp)
+                                    text = "RESOURCES",
+                                    style = TextStyle(color = textDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 )
                                 Text(
-                                    text = "$daysSinceQuit Days",
+                                    text = "$currencySymbol${String.format("%.0f", moneySaved)}",
+                                    style = TextStyle(color = textBright, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                )
+                            }
+                            
+                            // Vertical Separator
+                             Box(
+                                modifier = GlanceModifier
+                                    .width(1.dp)
+                                    .height(20.dp)
+                                    .background(textDim)
+                            ) {}
+
+                            Spacer(modifier = GlanceModifier.width(12.dp))
+
+                            // Streak
+                            Column(modifier = GlanceModifier.defaultWeight()) {
+                                Text(
+                                    text = "UPTIME",
+                                    style = TextStyle(color = textDim, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                )
+                                val dayLabel = if (daysSinceQuit == 1L) "DAY" else "DAYS"
+                                Text(
+                                    text = "$daysSinceQuit $dayLabel",
                                     style = TextStyle(
-                                        color = accentCyan,
+                                        color = textBright,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
@@ -275,8 +284,8 @@ class CommitmentGridWidget : GlanceAppWidget() {
 
     @Composable
     private fun RowScope.DayHeaderRow(startIndex: Int, count: Int) {
-        val textGray = ColorProvider(day = Color(0xFF8B9BB4), night = Color(0xFF8B9BB4))
-        
+        val textDim = ColorProvider(day = Color(0xFF546E7A), night = Color(0xFF546E7A))
+
         repeat(count) { i ->
             val daysAgo = startIndex - i
             // Calculate Day Letter (M, T, W...)
@@ -292,7 +301,7 @@ class CommitmentGridWidget : GlanceAppWidget() {
                 Text(
                     text = dayInitial,
                     style = TextStyle(
-                        color = textGray,
+                        color = textDim,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -302,36 +311,40 @@ class CommitmentGridWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun RowScope.GridRow(startIndex: Int, count: Int, daysSinceQuit: Long, breachDates: Set<LocalDate>) {
+    private fun RowScope.GridRow(startIndex: Int, count: Int, daysSinceQuit: Long, breachDates: Set<LocalDate>, hasHistory: Boolean, trackingStartDate: LocalDate) {
         repeat(count) { i ->
             val daysAgo = startIndex - i
             val date = LocalDate.now().minusDays(daysAgo.toLong())
             val isBreach = breachDates.contains(date)
-            
+
             // Logic:
             // If Breach -> RED
             // If Today -> CYAN (unless breach)
             // If Past & Covered by streak -> GREEN (unless breach)
             // Else -> DARK GREY (Unachieved)
-            
+
             val isToday = (daysAgo == 0)
             val isSmokeFree = (daysAgo <= daysSinceQuit)
             
+
+            
+            // Only consider past success if the day is AFTER the tracking start date
+            val isAfterStart = !date.isBefore(trackingStartDate)
+            
+            val isPastSuccess = !isToday && !isBreach && isAfterStart && (isSmokeFree || hasHistory)
+
             val dateNumber = date.dayOfMonth.toString()
 
             val rawColor = when {
-                isBreach -> Color(0xFFD32F2F) // RED
-                isToday -> Color(0xFF00E5FF)
-                isSmokeFree -> Color(0xFF2E8B57)
-                else -> Color(0xFF252A30)
+                isBreach -> Color(0xFFFF2B2B) // RED
+                isToday -> Color(0xFF00E5FF) // CYAN
+                isPastSuccess || isSmokeFree -> Color(0xFF00E676) // GREEN
+                else -> Color(0xFF1E2429) // DARK GREY
             }
             val boxColor = ColorProvider(day = rawColor, night = rawColor)
             val textColor = if (isToday || isSmokeFree || isBreach) Color.Black else Color.Gray
             val textCP = ColorProvider(day = textColor, night = textColor)
-            
-            // Text to show: Date normally, but maybe "X" for breach?
-            // User request: "Mark the specific day of the breach as RED (or an "X")."
-            // Let's use "X" for breach, Date for others.
+
             val displayText = if (isBreach) "X" else dateNumber
 
             // The Box for the Day

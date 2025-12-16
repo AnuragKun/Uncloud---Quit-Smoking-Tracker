@@ -1,23 +1,21 @@
 package com.arlabs.uncloud.presentation.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,32 +24,100 @@ import com.arlabs.uncloud.data.repository.CurrencyRepository
 import com.arlabs.uncloud.domain.model.AppCurrency
 
 @Composable
-fun CurrencySelectionDialog(onDismiss: () -> Unit, onCurrencySelected: (AppCurrency) -> Unit) {
+fun CurrencySelectionDialog(
+    onDismiss: () -> Unit,
+    onCurrencySelected: (AppCurrency) -> Unit
+) {
+    // Search State
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Filter Logic using your existing Repository
+    val filteredCurrencies = remember(searchQuery) {
+        if (searchQuery.isBlank()) {
+            CurrencyRepository.worldCurrencies
+        } else {
+            CurrencyRepository.worldCurrencies.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                        it.code.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp) // Taller, fixed height for better scrolling
+                .padding(vertical = 24.dp),
+            shape = RoundedCornerShape(4.dp), // Sharp "System Window" corners
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D1117)),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF30363D))
         ) {
             Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                Text(
-                        text = "Select Currency",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                // 1. TERMINAL HEADER
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "SELECT CURRENCY UNIT",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp,
+                            color = Color(0xFF00E5FF)
+                        )
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 2. SEARCH INPUT
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = {
+                        Text("Search database...", fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = Color.Gray)
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, null, tint = Color(0xFF00E5FF))
+                    },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF00E5FF),
+                        unfocusedBorderColor = Color(0xFF30363D),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color(0xFF00E5FF),
+                        focusedContainerColor = Color(0xFF0D1117),
+                        unfocusedContainerColor = Color(0xFF0D1117)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 3. CURRENCY LIST
                 LazyColumn(
-                        modifier = Modifier.heightIn(max = 400.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(CurrencyRepository.worldCurrencies) { currency ->
+                    items(filteredCurrencies) { currency ->
                         CurrencyItem(
-                                currency = currency,
-                                onClick = { onCurrencySelected(currency) }
+                            currency = currency,
+                            onClick = { onCurrencySelected(currency) }
                         )
                     }
                 }
@@ -62,29 +128,55 @@ fun CurrencySelectionDialog(onDismiss: () -> Unit, onCurrencySelected: (AppCurre
 
 @Composable
 fun CurrencyItem(currency: AppCurrency, onClick: () -> Unit) {
-    Column(modifier = Modifier.clickable(onClick = onClick)) {
-        Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(text = currency.flag, fontSize = 24.sp)
-            Column(modifier = Modifier.weight(1f)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF161B22), RoundedCornerShape(8.dp))
+            .border(1.dp, Color(0xFF252A30), RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Flag
+        Text(text = currency.flag, fontSize = 24.sp)
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Code & Name
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                        text = currency.code,
-                        color = Color.White,
+                    text = currency.code,
+                    style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontFamily = FontFamily.Monospace,
+                        color = Color.White
+                    )
                 )
-                Text(text = currency.name, color = Color.Gray, fontSize = 14.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "(${currency.symbol})",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFF00E5FF), // Cyan accent for symbol
+                        fontWeight = FontWeight.Bold
+                    )
+                )
             }
             Text(
-                    text = currency.symbol,
-                    color = Color(0xFF4CAF50),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                text = currency.name,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
             )
         }
-        HorizontalDivider(color = Color(0xFF333333))
+
+        // Selection Indicator
+        Text(
+            text = ">",
+            color = Color(0xFF30363D),
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
     }
 }

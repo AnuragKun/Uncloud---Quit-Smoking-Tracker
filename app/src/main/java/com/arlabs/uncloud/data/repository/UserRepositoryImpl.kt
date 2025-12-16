@@ -17,6 +17,7 @@ constructor(
         private val userPreferences: UserPreferences,
         private val achievementDao: AchievementDao,
         private val breachDao: com.arlabs.uncloud.data.local.dao.BreachDao,
+        private val journalRepository: com.arlabs.uncloud.domain.repository.JournalRepository,
         private val widgetRefresher: WidgetRefresher
 ) : UserRepository {
 
@@ -57,6 +58,8 @@ constructor(
     override suspend fun resetProgress() {
         userPreferences.clear()
         achievementDao.resetAchievements()
+        breachDao.deleteAll()
+        journalRepository.deleteAll()
         widgetRefresher.refreshWidgets()
     }
 
@@ -73,19 +76,25 @@ constructor(
         // 1. Get Current Config
         val currentConfig = userConfig.firstOrNull() ?: return
         
-        // 2. Calculate Stats to Add to Lifetime
+        // 2. Calculate Stats to Add to Lifetime (PRECISELY)
         val now = System.currentTimeMillis()
-        val daysSinceQuit = if (currentConfig.quitTimestamp > 0) {
-            java.util.concurrent.TimeUnit.MILLISECONDS.toDays(now - currentConfig.quitTimestamp)
-        } else 0L
+        val quitTime = currentConfig.quitTimestamp
+        val diffMillis = if (quitTime > 0) now - quitTime else 0L
 
-        // Approx calculation for stats
-        val cigsSaved = (daysSinceQuit * currentConfig.cigarettesPerDay).toInt()
-        val costPerCig = if (currentConfig.cigarettesInPack > 0) currentConfig.costPerPack / currentConfig.cigarettesInPack else 0.0
-        val moneySaved = cigsSaved * costPerCig
+        // Calculate cigarettes avoided in this session
+        val cigsPerDay = if (currentConfig.cigarettesPerDay > 0) currentConfig.cigarettesPerDay else 1
+        val millisPerCigarette = (24 * 60 * 60 * 1000L) / cigsPerDay
+        val cigsSavedDouble = diffMillis.toDouble() / millisPerCigarette
+        val cigsSaved = cigsSavedDouble.toLong() // Truncate for safety, or keep double? Int is safer for DB.
+
+        // Calculate money saved in this session
+        val packs = if (currentConfig.cigarettesInPack > 0) currentConfig.cigarettesInPack else 20
+        val costPerCig = currentConfig.costPerPack / packs
+        val moneySaved = cigsSavedDouble * costPerCig // Use double for precision
 
         // 3. Update Lifetime Stats & Reset Timestamp
-        val newLifetimeCigs = currentConfig.lifetimeCigarettes + cigsSaved
+        // We add the stats from the *current streak* to the *lifetime total*
+        val newLifetimeCigs = currentConfig.lifetimeCigarettes + cigsSaved.toInt()
         val newLifetimeMoney = currentConfig.lifetimeMoney + moneySaved
 
         val newConfig = currentConfig.copy(
@@ -110,5 +119,8 @@ constructor(
         
         // Final refresh to be sure everything is caught
         widgetRefresher.refreshWidgets()
+    }
+    override suspend fun clearBreachesBefore(timestamp: Long) {
+        breachDao.deleteBreachesBefore(timestamp)
     }
 }

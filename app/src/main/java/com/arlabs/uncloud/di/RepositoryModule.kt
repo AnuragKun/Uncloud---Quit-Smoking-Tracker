@@ -3,6 +3,7 @@ package com.arlabs.uncloud.di
 import com.arlabs.uncloud.data.repository.AchievementRepositoryImpl
 import com.arlabs.uncloud.data.repository.HealthRepositoryImpl
 import com.arlabs.uncloud.data.repository.UserRepositoryImpl
+import com.arlabs.uncloud.data.repository.JournalRepositoryImpl
 import com.arlabs.uncloud.domain.repository.AchievementRepository
 import com.arlabs.uncloud.domain.repository.HealthRepository
 import com.arlabs.uncloud.domain.repository.UserRepository
@@ -23,4 +24,7 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindHealthRepository(healthRepositoryImpl: HealthRepositoryImpl): HealthRepository
+
+    @Binds
+    abstract fun bindJournalRepository(journalRepositoryImpl: JournalRepositoryImpl): com.arlabs.uncloud.domain.repository.JournalRepository
 }

@@ -19,7 +19,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "quit_smoking_db").build()
+        return Room.databaseBuilder(context, AppDatabase::class.java, "quit_smoking_db")
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -30,6 +32,11 @@ object DatabaseModule {
     @Provides
     fun provideBreachDao(database: AppDatabase): com.arlabs.uncloud.data.local.dao.BreachDao {
         return database.breachDao()
+    }
+
+    @Provides
+    fun provideJournalDao(database: AppDatabase): com.arlabs.uncloud.data.local.dao.JournalDao {
+        return database.journalDao()
     }
 
     @Provides

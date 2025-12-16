@@ -15,9 +15,10 @@ import androidx.core.graphics.createBitmap
 class NotificationHelper(private val context: Context) {
 
     companion object {
-        const val CHANNEL_ID = "daily_motivation_channel"
-        const val MILESTONE_CHANNEL_ID = "milestone_channel"
+        const val CHANNEL_ID = "daily_motivation_channel_v2" // V2 to force High Importance update
+        const val MILESTONE_CHANNEL_ID = "milestone_channel_v2"
         const val NOTIFICATION_ID = 1001
+        const val RANK_NOTIFICATION_ID = 1002
     }
 
     fun createNotificationChannel() {
@@ -25,13 +26,14 @@ class NotificationHelper(private val context: Context) {
             val notificationManager: NotificationManager =
                     context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            // Daily Motivation Channel (Default Importance)
+            // Daily Motivation Channel (High Importance for Floating Notification)
             val name = "Daily Motivation"
             val descriptionText = "Shows daily motivational quotes and streak progress"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel =
                     NotificationChannel(CHANNEL_ID, name, importance).apply {
                         description = descriptionText
+                        enableVibration(true)
                     }
             notificationManager.createNotificationChannel(channel)
 
@@ -63,11 +65,54 @@ class NotificationHelper(private val context: Context) {
                         .setContentTitle(title)
                         .setContentText(content)
                         .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                         .setContentIntent(pendingIntent)
                         .setAutoCancel(true)
 
         notify(builder, NOTIFICATION_ID)
+    }
+
+    fun showRankNotification(rankTitle: String, rankDesc: String) {
+        val intent =
+                Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+        val pendingIntent: PendingIntent =
+                PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        // Share Action specifically for Rank
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "👑 New Identity Unlocked: $rankTitle! \n\n" +
+                    "I have reached the status of $rankTitle. \n\n" +
+                    "#Uncloud #QuitSmoking")
+            type = "text/plain"
+        }
+        val sharePendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            Intent.createChooser(shareIntent, "Share Rank"),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder =
+                NotificationCompat.Builder(context, MILESTONE_CHANNEL_ID) // Reuse high priority milestone channel
+                        .setSmallIcon(R.drawable.icon_app_logo)
+                        .setContentTitle("\uD83D\uDC51 Rank Up: $rankTitle")
+                        .setContentText(rankDesc)
+                        .setStyle(NotificationCompat.BigTextStyle().bigText("You have evolved into $rankTitle.\n$rankDesc"))
+                        .setColor(0xFFFFD700.toInt()) // Gold Color
+                        .setColorized(true)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_EVENT)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true)
+                        .addAction(android.R.drawable.ic_menu_share, "Share", sharePendingIntent)
+
+        notify(builder, RANK_NOTIFICATION_ID)
     }
 
     fun showMilestoneNotification(title: String, content: String) {

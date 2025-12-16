@@ -16,8 +16,10 @@ import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row // Added
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth // Added
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
@@ -45,91 +47,92 @@ class DailyClarityWidget : GlanceAppWidget() {
         val quote = quoteManager.getDailyQuote()
 
         provideContent {
-            // Theme Colors (Safe Providers)
-            val bgDark = ColorProvider(day = Color(0xFF0F1216), night = Color(0xFF0F1216))
-            val borderGray = ColorProvider(day = Color(0xFF252A30), night = Color(0xFF252A30))
-            val textWhite = ColorProvider(day = Color(0xFFE0E0E0), night = Color(0xFFE0E0E0))
-            val textGray = ColorProvider(day = Color(0xFF8B9BB4), night = Color(0xFF8B9BB4))
-            val accentCyan = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
+            // --- CYBERPUNK PALETTE ---
+            val bgMatte = ColorProvider(day = Color(0xFF090B0F), night = Color(0xFF090B0F))
+            val cyanNeon = ColorProvider(day = Color(0xFF00E5FF), night = Color(0xFF00E5FF))
+            val textDim = ColorProvider(day = Color(0xFF546E7A), night = Color(0xFF546E7A))
+            val textBright = ColorProvider(day = Color(0xFFE0E0E0), night = Color(0xFFE0E0E0)) // Bright for Quote
+            val greenNeon = ColorProvider(day = Color(0xFF00E676), night = Color(0xFF00E676))
 
             val context = LocalContext.current
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP 
             }
 
-            // 1. OUTER BOX (Acts as the Border)
+            // 1. TERMINAL CONTAINER
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(borderGray) // Border Color
-                    .cornerRadius(16.dp)    // Outer Radius
-                    .padding(1.dp)          // Border Thickness (1dp)
+                    .background(cyanNeon) // Border Color
+                    .cornerRadius(12.dp)
+                    .padding(2.dp) // Border Thickness
                     .clickable(actionStartActivity(intent)), // Navigate on tap
                 contentAlignment = Alignment.Center
             ) {
-                // 2. INNER BOX (Acts as the Content Background)
+                // 2. INNER BOX
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(bgDark)   // Main Background
-                        .cornerRadius(15.dp), // Inner Radius (slightly less to look smooth)
-                    contentAlignment = Alignment.Center
+                        .background(bgMatte)   // Main Background
+                        .cornerRadius(10.dp)
+                        .padding(12.dp),
+                    contentAlignment = Alignment.TopStart
                 ) {
                     // 3. CONTENT COLUMN
                     Column(
-                        modifier = GlanceModifier
-                            .padding(16.dp), // Actual padding for text
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = GlanceModifier.fillMaxSize()
                     ) {
+                        // Header
+                        Row(
+                             modifier = GlanceModifier.fillMaxWidth(),
+                             verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "COMMAND :: NEURAL_FEED",
+                                style = TextStyle(
+                                    color = cyanNeon,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Spacer(modifier = GlanceModifier.defaultWeight())
+                             Box(
+                                modifier = GlanceModifier
+                                    .width(6.dp)
+                                    .height(6.dp)
+                                    .background(greenNeon)
+                                    .cornerRadius(3.dp)
+                            ) {}
+                        }
 
-                        // 1. Elegant Header
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+
+                        // The Quote
                         Text(
-                            text = "DAILY CLARITY",
+                            text = "\"${quote.text}\"",
                             style = TextStyle(
-                                color = textGray,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                color = textBright,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium, // Less serif, more tech/clean
+                                textAlign = TextAlign.Start
                             )
                         )
 
                         Spacer(modifier = GlanceModifier.height(8.dp))
 
-                        // 2. The Uncloud Accent Line (Visual Separation)
-                        Box(
-                            modifier = GlanceModifier
-                                .height(2.dp)
-                                .width(24.dp)
-                                .background(accentCyan)
-                                .cornerRadius(2.dp)
-                        ) {}
-
-                        Spacer(modifier = GlanceModifier.height(12.dp))
-
-                        // 3. The Quote (Serif for "Book" feel)
+                        // Author / Source
                         Text(
-                            text = "\"${quote.text}\"",
+                            text = "SOURCE: ${quote.author.uppercase()}",
                             style = TextStyle(
-                                color = textWhite,
-                                fontSize = 15.sp,
-                                fontFamily = FontFamily.Serif,
-                                fontStyle = FontStyle.Italic,
-                                textAlign = TextAlign.Center
-                            )
+                                color = textDim,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.End
+                            ),
+                            modifier = GlanceModifier.fillMaxWidth()
                         )
-
-                        Spacer(modifier = GlanceModifier.height(12.dp))
-
-                        // 4. Author
-                        Text(
-                            text = "— ${quote.author}",
-                            style = TextStyle(
-                                color = textGray,
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily.Serif,
-                                textAlign = TextAlign.Center
-                            )
-                        )
+                        
+                        Spacer(modifier = GlanceModifier.defaultWeight())
                     }
                 }
             }

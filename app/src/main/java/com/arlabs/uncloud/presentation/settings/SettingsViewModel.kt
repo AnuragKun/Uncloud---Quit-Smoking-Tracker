@@ -17,7 +17,8 @@ class SettingsViewModel
 @Inject
 constructor(
         private val userRepository: UserRepository,
-        private val milestoneScheduler: com.arlabs.uncloud.domain.manager.MilestoneScheduler
+        private val milestoneScheduler: com.arlabs.uncloud.domain.manager.MilestoneScheduler,
+        private val dailyMotivationScheduler: com.arlabs.uncloud.domain.manager.DailyMotivationScheduler
 ) : ViewModel() {
 
         val userConfig: StateFlow<UserConfig?> =
@@ -60,9 +61,11 @@ constructor(
 
         fun updateQuitDate(timestamp: Long) {
                 val currentConfig = userConfig.value ?: return
-                val newConfig = currentConfig.copy(quitTimestamp = timestamp)
+                // When correcting the date, we assume this is the NEW "Start Date" for the journey.
+                val newConfig = currentConfig.copy(quitTimestamp = timestamp, trackingStartDate = timestamp)
                 viewModelScope.launch {
                         userRepository.saveUserConfig(newConfig)
+                        userRepository.clearBreachesBefore(timestamp)
                         milestoneScheduler.scheduleMilestones(timestamp)
                 }
         }
@@ -80,7 +83,14 @@ constructor(
                                 notificationHour = hour,
                                 notificationMinute = minute
                         )
-                viewModelScope.launch { userRepository.saveNotificationSettings(newConfig) }
+                viewModelScope.launch { 
+                    userRepository.saveNotificationSettings(newConfig)
+                    if (dailyMotivation) {
+                        dailyMotivationScheduler.schedule(hour, minute)
+                    } else {
+                        dailyMotivationScheduler.cancel()
+                    }
+                }
         }
 
         fun toggleTheme(isDark: Boolean) {

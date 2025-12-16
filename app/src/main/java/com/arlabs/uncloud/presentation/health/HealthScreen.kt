@@ -1,67 +1,170 @@
 package com.arlabs.uncloud.presentation.health
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
+
+// --- THEME CONSTANTS ---
+private val SysCyan = Color(0xFF00E5FF)
+private val SysGreen = Color(0xFF00FF9D)
+private val SysDark = Color(0xFF0D1117)
+private val SysPanel = Color(0xFF161B22)
+private val SysBorder = Color(0xFF30363D)
+private val SysTextMain = Color(0xFFE6EDF3)
+private val SysTextDim = Color(0xFF8B949E)
 
 @Composable
 fun HealthScreen(
-        viewModel: HealthViewModel = hiltViewModel(),
-        onNavigateBack: () -> Unit // In case we add a back button later, or handled by system back
+    viewModel: HealthViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val tabs = listOf("ALL", "WHO OFFICIAL", "EXTENDED")
+    
+    // Pager State
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
 
-    Scaffold(containerColor = Color.Black) { padding ->
+    // Cyberpunk Gradient Background
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(SysDark, Color.Black)
+    )
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            // Optional top bar
+        }
+    ) { padding ->
         Box(
-                modifier =
-                        Modifier.fillMaxSize()
-                                .background(
-                                        brush =
-                                                Brush.verticalGradient(
-                                                        colors =
-                                                                listOf(
-                                                                        Color(0xFF0F1216),
-                                                                        Color(0xFF000000)
-                                                                )
-                                                )
-                                )
-                                .padding(padding)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundBrush)
+                .background(backgroundBrush)
+                // .padding(padding)
         ) {
-            LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
             ) {
-                item {
+                // --- FIXED HEADER & TABS ---
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                ) {
                     Text(
-                            text = "Health Timeline",
-                            style = MaterialTheme.typography.headlineMedium,
+                        text = "BIOLOGICAL STATUS",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = SysCyan,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "RECOVERY TIMELINE",
+                        style = MaterialTheme.typography.headlineMedium.copy(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            fontFamily = FontFamily.Monospace
+                        )
                     )
+                
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TabRow(
+                        selectedTabIndex = pagerState.currentPage,
+                        containerColor = Color.Transparent,
+                        contentColor = SysCyan,
+                        indicator = { tabPositions ->
+                            TabRowDefaults.Indicator(
+                                modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                                color = SysCyan
+                            )
+                        },
+                        divider = {
+                            HorizontalDivider(color = SysBorder)
+                        }
+                    ) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = pagerState.currentPage == index,
+                                onClick = { 
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                },
+                                text = {
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal
+                                        ),
+                                        maxLines = 1
+                                    )
+                                },
+                                selectedContentColor = SysCyan,
+                                unselectedContentColor = SysTextDim
+                            )
+                        }
+                    }
                 }
 
-                items(state.milestones) { item -> HealthMilestoneItem(item) }
+                // --- SWIPEABLE CONTENT ---
+                androidx.compose.foundation.pager.HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.weight(1f)
+                ) { page ->
+                    val filteredMilestones = when (page) {
+                        1 -> state.milestones.filter { it.milestone.source == com.arlabs.uncloud.domain.model.MilestoneSource.WHO }
+                        2 -> state.milestones.filter { it.milestone.source == com.arlabs.uncloud.domain.model.MilestoneSource.LIFESTYLE }
+                        else -> state.milestones
+                    }
+
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredMilestones) { item ->
+                            HealthMilestoneItem(item)
+                        }
+
+                        item { Spacer(modifier = Modifier.height(32.dp)) }
+                    }
+                }
             }
         }
     }
@@ -69,131 +172,254 @@ fun HealthScreen(
 
 @Composable
 fun HealthMilestoneItem(item: HealthMilestoneUiModel) {
-    val containerColor =
-            when (item.status) {
-                MilestoneStatus.COMPLETED -> Color(0xFF1E2429)
-                MilestoneStatus.IN_PROGRESS -> Color(0xFF252A31)
-                MilestoneStatus.LOCKED -> Color(0xFF121518)
+    when (item.status) {
+        MilestoneStatus.IN_PROGRESS -> ActiveMilestoneCard(item)
+        MilestoneStatus.COMPLETED -> CompletedMilestoneCard(item)
+        MilestoneStatus.LOCKED -> LockedMilestoneCard(item)
+    }
+}
+
+// --- 1. ACTIVE CARD (Hero - Unchanged) ---
+@Composable
+fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SysPanel),
+        border = BorderStroke(1.dp, SysCyan.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SystemTag(text = "PROCESSING...", color = SysCyan)
+                Text(
+                    text = "${(item.progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = SysCyan,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
             }
 
-    val contentAlpha = if (item.status == MilestoneStatus.LOCKED) 0.5f else 1f
+            Spacer(modifier = Modifier.height(16.dp))
 
-    // Border for active item
-    val borderColor =
-            if (item.status == MilestoneStatus.IN_PROGRESS) Color(0xFF4CAF50) else Color.Transparent
-    val borderWidth = if (item.status == MilestoneStatus.IN_PROGRESS) 1.dp else 0.dp
+            Text(
+                text = item.milestone.title,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = item.milestone.description,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = SysTextDim,
+                    lineHeight = 20.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Progress Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color(0xFF0D1117))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(item.progress)
+                        .fillMaxHeight()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(SysGreen, SysCyan)
+                            )
+                        )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // ETA
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = null,
+                    tint = SysCyan,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "ESTIMATED COMPLETION: ${item.dueTimeText ?: "CALCULATING..."}",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = SysCyan,
+                        fontSize = 10.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+// --- 2. COMPLETED CARD (Now Expandable) ---
+@Composable
+fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
+    var expanded by remember { mutableStateOf(false) }
+    val rotationState by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "rotation")
 
     Card(
-            colors = CardDefaults.cardColors(containerColor = containerColor),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth(),
-            border =
-                    if (item.status == MilestoneStatus.IN_PROGRESS)
-                            androidx.compose.foundation.BorderStroke(borderWidth, borderColor)
-                    else null
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SysPanel.copy(alpha = 0.6f)),
+        border = BorderStroke(1.dp, SysGreen.copy(alpha = 0.3f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded } // Toggle expand on click
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Icon Status
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Check Icon
                 Box(
-                        modifier =
-                                Modifier.size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                                when (item.status) {
-                                                    MilestoneStatus.COMPLETED ->
-                                                            Color(0xFF4CAF50).copy(alpha = 0.2f)
-                                                    MilestoneStatus.IN_PROGRESS ->
-                                                            Color(0xFF2196F3).copy(alpha = 0.2f)
-                                                    MilestoneStatus.LOCKED ->
-                                                            Color.Gray.copy(alpha = 0.1f)
-                                                }
-                                        ),
-                        contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(SysGreen.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    when (item.status) {
-                        MilestoneStatus.COMPLETED ->
-                                Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Completed",
-                                        tint = Color(0xFF4CAF50),
-                                        modifier = Modifier.size(24.dp)
-                                )
-                        MilestoneStatus.IN_PROGRESS -> Text(text = "🔥", fontSize = 20.sp)
-                        MilestoneStatus.LOCKED ->
-                                Icon(
-                                        imageVector = Icons.Default.Lock,
-                                        contentDescription = "Locked",
-                                        tint = Color.Gray,
-                                        modifier = Modifier.size(20.dp)
-                                )
-                    }
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = "Restored",
+                        tint = SysGreen,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                            text = item.milestone.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White.copy(alpha = contentAlpha),
-                            fontWeight = FontWeight.Bold
+                        text = item.milestone.title,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                            text = item.milestone.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFB0B3B8).copy(alpha = contentAlpha)
-                    )
-                }
-            }
-
-            // Footer Information (Date or Progress or Due Time)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            when (item.status) {
-                MilestoneStatus.COMPLETED -> {
-                    Text(
-                            text = "Achieved on ${item.achievedDate}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF4CAF50)
-                    )
-                }
-                MilestoneStatus.IN_PROGRESS -> {
-                    Column {
-                        Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                    text = "In Progress",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF2196F3)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "SYSTEM RESTORED // ${item.achievedDate ?: "Unknown"}",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = SysGreen,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp
                             )
-                            Text(
-                                    text = "${(item.progress * 100).toInt()}%",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                                progress = { item.progress },
-                                modifier = Modifier.fillMaxWidth().height(6.dp),
-                                color = Color(0xFF2196F3),
-                                trackColor = Color(0xFF1E2429),
-                                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
                         )
                     }
                 }
-                MilestoneStatus.LOCKED -> {
+
+                // Expand Icon
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = "Expand",
+                    tint = SysTextDim,
+                    modifier = Modifier.rotate(rotationState)
+                )
+            }
+
+            // Expanded Content (Description)
+            AnimatedVisibility(visible = expanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Divider(color = SysBorder, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                            text = item.dueTimeText ?: "Upcoming",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
+                        text = item.milestone.description,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = SysTextDim,
+                            fontSize = 13.sp,
+                            lineHeight = 20.sp
+                        )
                     )
                 }
             }
         }
+    }
+}
+
+// --- 3. LOCKED CARD (Now shows Due Date) ---
+@Composable
+fun LockedMilestoneCard(item: HealthMilestoneUiModel) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        border = BorderStroke(1.dp, SysBorder), // Dim border
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Lock,
+                contentDescription = "Locked",
+                tint = Color.DarkGray,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = item.milestone.title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Normal
+                    )
+                )
+
+                // CHANGED: Use item.dueTimeText instead of generic "Awaiting Data"
+                Text(
+                    text = "LOCKED // ${item.dueTimeText?.uppercase() ?: "SCHEDULE PENDING"}",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Color.DarkGray,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+    }
+}
+
+// --- HELPER COMPONENTS ---
+
+@Composable
+fun SystemTag(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            .background(color.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = color,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
+            )
+        )
     }
 }

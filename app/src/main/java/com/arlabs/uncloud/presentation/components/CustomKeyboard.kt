@@ -1,98 +1,167 @@
 package com.arlabs.uncloud.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Backspace
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// Theme Constants (Matching your other files)
+private val SysCyan = Color(0xFF00E5FF)
+private val SysPanel = Color(0xFF161B22)
+private val SysBorder = Color(0xFF30363D)
+
 @Composable
 fun CustomNumericKeyboard(
-        onNumberClick: (String) -> Unit,
-        onBackspaceClick: () -> Unit,
-        modifier: Modifier = Modifier
+    onNumberClick: (String) -> Unit,
+    onBackspaceClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-            modifier = modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        val keys = listOf(listOf("7", "8", "9"), listOf("4", "5", "6"), listOf("1", "2", "3"))
+    val haptic = LocalHapticFeedback.current
 
-        keys.forEach { row ->
-            Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                row.forEach { key ->
-                    KeyboardKey(
-                            text = key,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onNumberClick(key) }
-                    )
-                }
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp) // Spacing between rows
+    ) {
+        // Row 1
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SystemKey(symbol = "1", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("1")
+            }
+            SystemKey(symbol = "2", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("2")
+            }
+            SystemKey(symbol = "3", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("3")
             }
         }
 
-        // Last row: dot (optional), 0, backspace
-        Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Placeholder for alignment or dot if needed later
-            Box(modifier = Modifier.weight(1f))
+        // Row 2
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SystemKey(symbol = "4", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("4")
+            }
+            SystemKey(symbol = "5", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("5")
+            }
+            SystemKey(symbol = "6", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("6")
+            }
+        }
 
-            KeyboardKey(
-                    text = "0",
-                    modifier = Modifier.weight(1f),
-                    onClick = { onNumberClick("0") }
-            )
+        // Row 3
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SystemKey(symbol = "7", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("7")
+            }
+            SystemKey(symbol = "8", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("8")
+            }
+            SystemKey(symbol = "9", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("9")
+            }
+        }
 
-            Box(
-                    modifier =
-                            Modifier.weight(1f)
-                                    .height(60.dp)
-                                    .clip(RoundedCornerShape(25.dp))
-                                    .background(
-                                            Color.DarkGray.copy(alpha = 0.3f)
-                                    ) // Darker for function keys
-                                    .clickable { onBackspaceClick() },
-                    contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Backspace",
-                        tint = Color.White
-                )
+        // Row 4 (Empty - 0 - Backspace)
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Empty placeholder to balance grid
+            Spacer(modifier = Modifier.weight(1f))
+
+            SystemKey(symbol = "0", modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onNumberClick("0")
+            }
+
+            // Backspace Key
+            SystemActionKey(modifier = Modifier.weight(1f)) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onBackspaceClick()
             }
         }
     }
 }
 
 @Composable
-fun KeyboardKey(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun SystemKey(
+    symbol: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
-            modifier =
-                    modifier.height(60.dp)
-                            .clip(RoundedCornerShape(25.dp))
-                            .background(Color.DarkGray.copy(alpha = 0.3f))
-                            .clickable { onClick() },
-            contentAlignment = Alignment.Center
-    ) { Text(text = text, fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.White) }
+        modifier = modifier
+            .height(56.dp) // Taller, easier to hit
+            .clip(RoundedCornerShape(8.dp))
+            .background(SysPanel)
+            .border(1.dp, SysBorder, RoundedCornerShape(8.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(color = SysCyan),
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = symbol,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White,
+                fontSize = 24.sp
+            )
+        )
+    }
+}
+
+@Composable
+private fun SystemActionKey(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .height(56.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Transparent) // Transparent to distinguish from numbers
+            .border(1.dp, Color(0xFFEF5350).copy(alpha = 0.5f), RoundedCornerShape(8.dp)) // Red border for delete
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(color = Color(0xFFEF5350)),
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.Backspace,
+            contentDescription = "Backspace",
+            tint = Color(0xFFEF5350) // Red tint for destructive action
+        )
+    }
 }
