@@ -2,7 +2,7 @@
 
 **Uncloud** is a modern, privacy-first Android application designed to help you break free from smoking. Track your progress, visualize your health recovery, and stay motivated with a beautiful, dark-themed interface built completely with **Jetpack Compose**.
 
-![image alt](https://github.com/AnuragKun/Uncloud-Quit-Smoking/blob/main/9RlzlCUQRHWX_1024_500.png?raw=true)
+![image alt](https://github.com/AnuragKun/Uncloud---Quit-Smoking-Tracker/blob/main/9RlzlCUQRHWX_1024_500.png?raw=true)
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF.svg?style=flat&logo=kotlin)
 ![Android](https://img.shields.io/badge/Android-MinSDK%2024-3DDC84.svg?style=flat&logo=android)
@@ -61,9 +61,9 @@ Built with modern Android development best practices:
 
 ## 📸 Screenshots
 
-![image alt](https://github.com/AnuragKun/Uncloud-Quit-Smoking/blob/main/1.png?raw=true) 
+![image alt](https://github.com/AnuragKun/Uncloud---Quit-Smoking-Tracker/blob/main/1.png?raw=true) 
 
-![image alt](https://github.com/AnuragKun/Uncloud-Quit-Smoking/blob/main/2.png?raw=true)  
+![image alt](https://github.com/AnuragKun/Uncloud---Quit-Smoking-Tracker/blob/main/2.png?raw=true)  
 ## 🚀 Getting Started
 
 1. **Clone the repository**:
