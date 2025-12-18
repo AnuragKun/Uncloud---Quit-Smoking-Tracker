@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.arlabs.uncloud.domain.manager.BackupManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import android.net.Uri
 
 @HiltViewModel
 class SettingsViewModel
@@ -18,8 +22,12 @@ class SettingsViewModel
 constructor(
         private val userRepository: UserRepository,
         private val milestoneScheduler: com.arlabs.uncloud.domain.manager.MilestoneScheduler,
-        private val dailyMotivationScheduler: com.arlabs.uncloud.domain.manager.DailyMotivationScheduler
+        private val dailyMotivationScheduler: com.arlabs.uncloud.domain.manager.DailyMotivationScheduler,
+        private val backupManager: BackupManager
 ) : ViewModel() {
+
+    private val _backupState = MutableStateFlow<BackupState>(BackupState.Idle)
+    val backupState = _backupState.asStateFlow()
 
         val userConfig: StateFlow<UserConfig?> =
                 userRepository.userConfig.stateIn(
@@ -103,4 +111,47 @@ constructor(
                         milestoneScheduler.cancelAll()
                 }
         }
+
+    fun exportData(uri: Uri) {
+        viewModelScope.launch {
+            _backupState.value = BackupState.Loading
+            try {
+                val success = backupManager.exportToUri(uri)
+                if (success) {
+                    _backupState.value = BackupState.Success("Backup saved successfully.")
+                } else {
+                    _backupState.value = BackupState.Error("Export failed.")
+                }
+            } catch (e: Exception) {
+                _backupState.value = BackupState.Error(e.message ?: "Export failed")
+            }
+        }
+    }
+
+    fun importData(uri: Uri) {
+        viewModelScope.launch {
+            _backupState.value = BackupState.Loading
+            try {
+                val success = backupManager.restoreBackup(uri)
+                if (success) {
+                    _backupState.value = BackupState.Success("Data restored. Restarting recommended.")
+                } else {
+                    _backupState.value = BackupState.Error("Import failed: Invalid file.")
+                }
+            } catch (e: Exception) {
+                _backupState.value = BackupState.Error(e.message ?: "Import failed")
+            }
+        }
+    }
+
+    fun acknowledgeBackupState() {
+        _backupState.value = BackupState.Idle
+    }
+}
+
+sealed class BackupState {
+    object Idle : BackupState()
+    object Loading : BackupState()
+    data class Success(val message: String) : BackupState()
+    data class Error(val message: String) : BackupState()
 }

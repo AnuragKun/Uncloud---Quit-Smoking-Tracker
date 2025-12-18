@@ -47,7 +47,7 @@ fun HomeScreen(
         // Cyberpunk Background Brush
         val backgroundBrush = Brush.verticalGradient(
                 colors = listOf(
-                        Color(0xFF0D1117), // Deep Space Blue/Black
+                        MaterialTheme.colorScheme.background, // Deep Space Blue/Black
                         Color(0xFF000000)
                 )
         )
@@ -174,7 +174,7 @@ fun HomeTopBar(onSettingsClick: () -> Unit, onShareClick: () -> Unit) {
         Row(
                 modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF0D1117)) // Matches gradient top
+                        .background(MaterialTheme.colorScheme.background) // Matches gradient top
                         .statusBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -208,14 +208,14 @@ fun HomeTopBar(onSettingsClick: () -> Unit, onShareClick: () -> Unit) {
                                 Icon(
                                         imageVector = Icons.Rounded.Share,
                                         contentDescription = "Share",
-                                        tint = Color(0xFF8B949E)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                         }
                         IconButton(onClick = onSettingsClick) {
                                 Icon(
                                         imageVector = Icons.Rounded.Settings,
                                         contentDescription = "Config",
-                                        tint = Color(0xFF8B949E)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                         }
                 }
@@ -230,8 +230,8 @@ fun IdentityChip(
         Surface(
                 onClick = onClick,
                 shape = RoundedCornerShape(50),
-                color = Color(0xFF161B22),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF30363D))
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
                 Row(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
@@ -280,11 +280,11 @@ fun PanicActionButton(onClick: () -> Unit) {
                 onClick = onClick,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF21262D),
-                        contentColor = Color(0xFFFF5252)
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.error
                 ),
                 shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF5252).copy(alpha = 0.3f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
         ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(

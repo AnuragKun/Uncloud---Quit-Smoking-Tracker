@@ -37,8 +37,8 @@ import com.arlabs.uncloud.domain.model.rankSystem
 import com.arlabs.uncloud.presentation.home.HomeViewModel
 
 // Theme Constants
-private val SysDark = Color(0xFF0D1117)
-private val SysPanel = Color(0xFF161B22)
+// --- THEME CONSTANTS REMOVED (Now using MaterialTheme) ---
+// private val SysDark...
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +51,7 @@ fun RankingScreen(
 
     // Background Brush
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(SysDark, Color.Black)
+        colors = listOf(MaterialTheme.colorScheme.background, Color.Black)
     )
 
     Scaffold(
@@ -64,7 +64,7 @@ fun RankingScreen(
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
-                            color = Color(0xFF00E5FF)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 },
@@ -77,7 +77,7 @@ fun RankingScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         containerColor = Color.Transparent
@@ -157,7 +157,7 @@ fun RankTimelineItem(
                         .weight(1f)
                         .background(
                             if (isCompleted || isCurrent) rank.color.copy(alpha = 0.5f)
-                            else Color(0xFF30363D)
+                            else MaterialTheme.colorScheme.outline
                         )
                 )
             } else {
@@ -174,12 +174,12 @@ fun RankTimelineItem(
                         when {
                             isCurrent -> rank.color.copy(alpha = 0.2f) // Glowing halo
                             isCompleted -> rank.color
-                            else -> SysPanel
+                            else -> MaterialTheme.colorScheme.surface
                         }
                     )
                     .border(
                         width = 2.dp,
-                        color = if (isLocked) Color(0xFF30363D) else rank.color,
+                        color = if (isLocked) MaterialTheme.colorScheme.outline else rank.color,
                         shape = CircleShape
                     )
             ) {
@@ -210,7 +210,7 @@ fun RankTimelineItem(
                         .weight(1f)
                         .background(
                             if (isCompleted) rankSystem[index + 1].color.copy(alpha = 0.5f)
-                            else Color(0xFF30363D)
+                            else MaterialTheme.colorScheme.outline
                         )
                 )
             } else {
@@ -244,7 +244,7 @@ fun CurrentRankCard(rank: Rank, currentDays: Long, nextGoal: Int) {
     }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = SysPanel),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = androidx.compose.foundation.BorderStroke(1.dp, rank.color),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
@@ -287,7 +287,7 @@ fun CurrentRankCard(rank: Rank, currentDays: Long, nextGoal: Int) {
 
             Text(
                 text = rank.description,
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF8B949E))
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -298,7 +298,7 @@ fun CurrentRankCard(rank: Rank, currentDays: Long, nextGoal: Int) {
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(4.dp),
                     color = rank.color,
-                    trackColor = Color(0xFF0D1117),
+                    trackColor = MaterialTheme.colorScheme.background,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
@@ -325,11 +325,11 @@ fun ExpandableRankRow(rank: Rank, isLocked: Boolean) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isLocked) Color.Transparent else SysPanel.copy(alpha = 0.5f)
+            containerColor = if (isLocked) Color.Transparent else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
         ),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (isLocked) Color(0xFF30363D) else Color.Transparent
+            if (isLocked) MaterialTheme.colorScheme.outline else Color.Transparent
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -404,7 +404,7 @@ fun ExpandableRankRow(rank: Rank, isLocked: Boolean) {
             ) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider(color = Color(0xFF30363D), thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
@@ -420,7 +420,7 @@ fun ExpandableRankRow(rank: Rank, isLocked: Boolean) {
                         Text(
                             text = "ACCESS DENIED. CONTINUE PROGRESSION.",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color(0xFFEF5350), // Red warning color
+                                color = MaterialTheme.colorScheme.error, // Red warning color
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Bold
                             )

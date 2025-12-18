@@ -32,11 +32,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 // --- THEME CONSTANTS ---
-private val SysCyan = Color(0xFF00E5FF)
-private val SysRed = Color(0xFFFF5252)
-private val SysDark = Color(0xFF0D1117)
-private val SysPanel = Color(0xFF161B22)
-private val SysBorder = Color(0xFF30363D)
+// --- THEME CONSTANTS REMOVED (Now using MaterialTheme) ---
+// private val SysCyan...
 
 @Composable
 fun ProtocolScreen(
@@ -49,7 +46,7 @@ fun ProtocolScreen(
 
     // Cyberpunk Gradient Background
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(SysDark, Color.Black)
+        colors = listOf(MaterialTheme.colorScheme.background, Color.Black)
     )
 
     Box(
@@ -96,7 +93,7 @@ fun ProtocolScreen(
 
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SysPanel),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, currentRank.color.copy(alpha = 0.5f)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,8 +156,8 @@ fun ProtocolScreen(
             // This fills the remaining space
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SysPanel),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SysBorder),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -175,7 +172,7 @@ fun ProtocolScreen(
                         Text(
                             text = "INCIDENT LOG",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = SysRed,
+                                color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
                                 letterSpacing = 1.sp
@@ -203,7 +200,7 @@ fun ProtocolScreen(
                                 Text(
                                     text = "SYSTEM NOMINAL",
                                     style = MaterialTheme.typography.titleMedium.copy(
-                                        color = SysCyan,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace
                                     )
@@ -225,8 +222,8 @@ fun ProtocolScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0xFF0F1216), RoundedCornerShape(4.dp))
-                                        .border(1.dp, SysBorder, RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(4.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                                         .padding(12.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
@@ -243,7 +240,7 @@ fun ProtocolScreen(
                                         Text(
                                             text = breach.trigger.uppercase(),
                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                color = SysRed, // Red for danger
+                                                color = MaterialTheme.colorScheme.error, // Red for danger
                                                 fontWeight = FontWeight.Bold,
                                                 fontFamily = FontFamily.Monospace
                                             )
@@ -274,7 +271,7 @@ fun ProtocolScreen(
             Text(
                 text = "EMERGENCY OVERRIDE",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = SysRed.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
                 ),
@@ -285,22 +282,22 @@ fun ProtocolScreen(
 
             Button(
                 onClick = onNavigateToBreach,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E0F0F)), // Dark Red BG
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)), // Dark Red BG
                 shape = RoundedCornerShape(4.dp), // Tech corners
-                border = androidx.compose.foundation.BorderStroke(1.dp, SysRed.copy(alpha = 0.5f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Warning,
                     contentDescription = null,
-                    tint = SysRed,
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = "REPORT PROTOCOL BREACH",
                     style = MaterialTheme.typography.labelLarge.copy(
-                        color = SysRed,
+                        color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 1.sp
@@ -314,7 +311,7 @@ fun ProtocolScreen(
             Text(
                 text = "INITIATE ONLY UPON CONFIRMED RELAPSE (SMOKING EVENT)",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = SysRed.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     textAlign = TextAlign.Center

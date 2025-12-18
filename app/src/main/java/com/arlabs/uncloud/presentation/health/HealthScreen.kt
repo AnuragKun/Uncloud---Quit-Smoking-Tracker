@@ -32,14 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
-// --- THEME CONSTANTS ---
-private val SysCyan = Color(0xFF00E5FF)
-private val SysGreen = Color(0xFF00FF9D)
-private val SysDark = Color(0xFF0D1117)
-private val SysPanel = Color(0xFF161B22)
-private val SysBorder = Color(0xFF30363D)
-private val SysTextMain = Color(0xFFE6EDF3)
-private val SysTextDim = Color(0xFF8B949E)
+// --- THEME CONSTANTS REMOVED (Now using MaterialTheme) ---
+// private val SysCyan...
 
 @Composable
 fun HealthScreen(
@@ -55,7 +49,7 @@ fun HealthScreen(
 
     // Cyberpunk Gradient Background
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(SysDark, Color.Black)
+        colors = listOf(MaterialTheme.colorScheme.background, Color.Black)
     )
 
     Scaffold(
@@ -85,7 +79,7 @@ fun HealthScreen(
                     Text(
                         text = "BIOLOGICAL STATUS",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = SysCyan,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
                             fontFamily = FontFamily.Monospace
@@ -106,15 +100,15 @@ fun HealthScreen(
                     TabRow(
                         selectedTabIndex = pagerState.currentPage,
                         containerColor = Color.Transparent,
-                        contentColor = SysCyan,
+                        contentColor = MaterialTheme.colorScheme.primary,
                         indicator = { tabPositions ->
                             TabRowDefaults.Indicator(
                                 modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                                color = SysCyan
+                                color = MaterialTheme.colorScheme.primary
                             )
                         },
                         divider = {
-                            HorizontalDivider(color = SysBorder)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                         }
                     ) {
                         tabs.forEachIndexed { index, title ->
@@ -135,8 +129,8 @@ fun HealthScreen(
                                         maxLines = 1
                                     )
                                 },
-                                selectedContentColor = SysCyan,
-                                unselectedContentColor = SysTextDim
+                                selectedContentColor = MaterialTheme.colorScheme.primary,
+                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -184,8 +178,8 @@ fun HealthMilestoneItem(item: HealthMilestoneUiModel) {
 fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SysPanel),
-        border = BorderStroke(1.dp, SysCyan.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -195,12 +189,12 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SystemTag(text = "PROCESSING...", color = SysCyan)
+                SystemTag(text = "PROCESSING...", color = MaterialTheme.colorScheme.primary)
                 Text(
                     text = "${(item.progress * 100).toInt()}%",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Monospace,
-                        color = SysCyan,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -221,7 +215,7 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
             Text(
                 text = item.milestone.description,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = SysTextDim,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 20.sp
                 )
             )
@@ -234,7 +228,7 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color(0xFF0D1117))
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Box(
                     modifier = Modifier
@@ -242,7 +236,7 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
                         .fillMaxHeight()
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(SysGreen, SysCyan)
+                                colors = listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary)
                             )
                         )
                 )
@@ -255,7 +249,7 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
                 Icon(
                     imageVector = Icons.Rounded.Refresh,
                     contentDescription = null,
-                    tint = SysCyan,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(12.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
@@ -263,7 +257,7 @@ fun ActiveMilestoneCard(item: HealthMilestoneUiModel) {
                     text = "ESTIMATED COMPLETION: ${item.dueTimeText ?: "CALCULATING..."}",
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = FontFamily.Monospace,
-                        color = SysCyan,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 10.sp
                     )
                 )
@@ -280,8 +274,8 @@ fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
 
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SysPanel.copy(alpha = 0.6f)),
-        border = BorderStroke(1.dp, SysGreen.copy(alpha = 0.3f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded } // Toggle expand on click
@@ -295,13 +289,13 @@ fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(SysGreen.copy(alpha = 0.1f)),
+                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Check,
                         contentDescription = "Restored",
-                        tint = SysGreen,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -320,7 +314,7 @@ fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
                         Text(
                             text = "SYSTEM RESTORED // ${item.achievedDate ?: "Unknown"}",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = SysGreen,
+                                color = MaterialTheme.colorScheme.secondary,
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 10.sp
                             )
@@ -332,7 +326,7 @@ fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
                 Icon(
                     imageVector = Icons.Rounded.KeyboardArrowDown,
                     contentDescription = "Expand",
-                    tint = SysTextDim,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.rotate(rotationState)
                 )
             }
@@ -341,12 +335,12 @@ fun CompletedMilestoneCard(item: HealthMilestoneUiModel) {
             AnimatedVisibility(visible = expanded) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
-                    Divider(color = SysBorder, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = item.milestone.description,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = SysTextDim,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             lineHeight = 20.sp
                         )
@@ -363,7 +357,7 @@ fun LockedMilestoneCard(item: HealthMilestoneUiModel) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, SysBorder), // Dim border
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), // Dim border
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -392,7 +386,7 @@ fun LockedMilestoneCard(item: HealthMilestoneUiModel) {
                 Text(
                     text = "LOCKED // ${item.dueTimeText?.uppercase() ?: "SCHEDULE PENDING"}",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold

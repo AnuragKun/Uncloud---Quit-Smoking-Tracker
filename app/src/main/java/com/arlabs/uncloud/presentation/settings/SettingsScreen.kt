@@ -4,6 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +35,8 @@ import com.arlabs.uncloud.BuildConfig
 import com.arlabs.uncloud.domain.model.UserConfig
 import com.arlabs.uncloud.presentation.settings.components.CombinedDateTimeDialog
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +64,7 @@ fun SettingsScreen(
 
         // Cyberpunk Background
         val backgroundBrush = Brush.verticalGradient(
-                colors = listOf(Color(0xFF0D1117), Color(0xFF000000))
+                colors = listOf(MaterialTheme.colorScheme.background, Color(0xFF000000))
         )
 
         Scaffold(
@@ -72,7 +77,7 @@ fun SettingsScreen(
                                                         fontFamily = FontFamily.Monospace,
                                                         fontWeight = FontWeight.Bold,
                                                         letterSpacing = 2.sp,
-                                                        color = Color(0xFF00E5FF)
+                                                        color = MaterialTheme.colorScheme.primary
                                                 )
                                         )
                                 },
@@ -85,7 +90,7 @@ fun SettingsScreen(
                                                 )
                                         }
                                 },
-                                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
                         )
                 },
                 containerColor = Color.Transparent
@@ -125,8 +130,8 @@ fun SettingsScreen(
                                                 icon = Icons.Rounded.DeleteForever,
                                                 title = "FACTORY RESET",
                                                 subtitle = "Wipe all data and restart protocol",
-                                                textColor = Color(0xFFFF5252),
-                                                iconColor = Color(0xFFFF5252),
+                                                textColor = MaterialTheme.colorScheme.error,
+                                                iconColor = MaterialTheme.colorScheme.error,
                                                 onClick = { showResetDialog = true }
                                         )
                                 }
@@ -228,7 +233,47 @@ fun SettingsScreen(
                                         )
                                 }
 
-                                // 4. About & Legal
+                                // 4. Data Sovereignty
+                                SettingsSection(title = "DATA SOVEREIGNTY") {
+                                    val exportLauncher = rememberLauncherForActivityResult(
+                                        contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+                                    ) { uri ->
+                                        uri?.let { viewModel.exportData(it) }
+                                    }
+
+                                    val importLauncher = rememberLauncherForActivityResult(
+                                        contract = androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+                                    ) { uri ->
+                                        uri?.let { viewModel.importData(it) }
+                                    }
+                                    
+                                    val backupState by viewModel.backupState.collectAsState()
+                                    
+                                    LaunchedEffect(backupState) {
+                                        if (backupState is BackupState.Success) {
+                                            Toast.makeText(context, (backupState as BackupState.Success).message, Toast.LENGTH_LONG).show()
+                                            viewModel.acknowledgeBackupState()
+                                        } else if (backupState is BackupState.Error) {
+                                            Toast.makeText(context, (backupState as BackupState.Error).message, Toast.LENGTH_LONG).show()
+                                            viewModel.acknowledgeBackupState()
+                                        }
+                                    }
+
+                                    SettingsItem(
+                                        icon = Icons.Rounded.Upload,
+                                        title = "EXPORT ARCHIVE",
+                                        subtitle = "Backup protocol data to JSON",
+                                        onClick = { exportLauncher.launch("uncloud_backup_${System.currentTimeMillis()}.json") }
+                                    )
+                                    SettingsItem(
+                                        icon = Icons.Rounded.Download,
+                                        title = "IMPORT ARCHIVE",
+                                        subtitle = "Restore data (WARNING: Overwrites current)",
+                                        onClick = { importLauncher.launch(arrayOf("application/json")) }
+                                    )
+                                }
+
+                                // 5. About & Legal
                                 SettingsSection(title = "LEGAL & VERSION") {
                                         SettingsItem(
                                                 icon = Icons.Rounded.PrivacyTip,
@@ -258,8 +303,8 @@ fun SettingsScreen(
                 if (showQuitDialog) {
                         AlertDialog(
                                 onDismissRequest = { showQuitDialog = false },
-                                containerColor = Color(0xFF0D1117),
-                                icon = { Icon(Icons.Rounded.Warning, null, tint = Color(0xFF00E5FF)) },
+                                containerColor = MaterialTheme.colorScheme.background,
+                                icon = { Icon(Icons.Rounded.Warning, null, tint = MaterialTheme.colorScheme.primary) },
                                 title = { Text("SYSTEM CALIBRATION", fontFamily = FontFamily.Monospace, color = Color.White) },
                                 text = {
                                         Text(
@@ -276,7 +321,7 @@ fun SettingsScreen(
                                                         showDatePickerDialog = true
                                                 }
                                         ) {
-                                                Text("CORRECTION", color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                                                Text("CORRECTION", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                         }
                                 },
                                 dismissButton = {
@@ -286,7 +331,7 @@ fun SettingsScreen(
                                                         onNavigateToBreach()
                                                 }
                                         ) {
-                                                Text("I RELAPSED", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                                                Text("I RELAPSED", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                                         }
                                 }
                         )
@@ -334,7 +379,7 @@ fun SettingsScreen(
                 if (showResetDialog) {
                         AlertDialog(
                                 onDismissRequest = { showResetDialog = false },
-                                containerColor = Color(0xFF0D1117),
+                                containerColor = MaterialTheme.colorScheme.background,
                                 title = { Text("CONFIRM RESET", fontFamily = FontFamily.Monospace, color = Color.White) },
                                 text = {
                                         Text(
@@ -349,7 +394,7 @@ fun SettingsScreen(
                                                         showResetDialog = false
                                                         onNavigateToOnboarding()
                                                 }
-                                        ) { Text("WIPE DATA", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold) }
+                                        ) { Text("WIPE DATA", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
                                 },
                                 dismissButton = {
                                         TextButton(onClick = { showResetDialog = false }) {
@@ -373,13 +418,13 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
                                 letterSpacing = 2.sp,
                                 fontFamily = FontFamily.Monospace
                         ),
-                        color = Color(0xFF00E5FF),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
                 )
                 // Replaced Card with a transparent Column for cleaner look
                 Column(
                         modifier = Modifier
-                                .background(Color(0xFF161B22), RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
                 ) {
                         content()
                 }
@@ -430,7 +475,7 @@ fun SettingsItem(
                 modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(Color(0xFF252A30))
+                        .background(MaterialTheme.colorScheme.outline)
         )
 }
 
@@ -468,8 +513,8 @@ fun SwitchSettingsItem(
                         checked = checked,
                         onCheckedChange = onCheckedChange,
                         colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color(0xFF00E5FF),
-                                checkedTrackColor = Color(0xFF004D40),
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                                 uncheckedThumbColor = Color.Gray,
                                 uncheckedTrackColor = Color.DarkGray
                         )
@@ -479,7 +524,7 @@ fun SwitchSettingsItem(
                 modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(Color(0xFF252A30))
+                        .background(MaterialTheme.colorScheme.outline)
         )
 }
 
@@ -494,90 +539,121 @@ fun EditDetailsDialog(
         var cigsPerDayText by remember { mutableStateOf(currentConfig.cigarettesPerDay.toString()) }
         var cigsInPackText by remember { mutableStateOf(currentConfig.cigarettesInPack.toString()) }
         var currencyText by remember { mutableStateOf(currentConfig.currency) }
+        var showCurrencyDialog by remember { mutableStateOf(false) }
 
-        AlertDialog(
-                onDismissRequest = onDismiss,
-                containerColor = Color(0xFF0D1117),
-                title = {
-                        Text(
-                                "UPDATE PARAMETERS",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                        )
-                },
-                text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                // Cost Input
-                                SystemTextField(
-                                        value = costText,
-                                        onValueChange = { costText = it },
-                                        label = "Cost per Pack"
-                                )
-                                // Cigs per Day
-                                SystemTextField(
-                                        value = cigsPerDayText,
-                                        onValueChange = { cigsPerDayText = it },
-                                        label = "Cigarettes per Day"
-                                )
-                                // Pack Size
-                                SystemTextField(
-                                        value = cigsInPackText,
-                                        onValueChange = { cigsInPackText = it },
-                                        label = "Cigarettes in Pack"
-                                )
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Card(
+            shape = RoundedCornerShape(4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .wrapContentHeight()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // HEADER
+                Text(
+                    "UPDATE PARAMETERS",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 2.sp
+                    )
+                )
 
-                                var showCurrencyDialog by remember { mutableStateOf(false) }
+                Spacer(modifier = Modifier.height(8.dp))
 
-                                // Currency Selector
-                                OutlinedTextField(
-                                        value = currencyText,
-                                        onValueChange = {},
-                                        label = { Text("Currency", fontFamily = FontFamily.Monospace) },
-                                        readOnly = true,
-                                        trailingIcon = {
-                                                Icon(Icons.Rounded.ArrowDropDown, null, tint = Color.Gray)
-                                        },
-                                        modifier = Modifier.fillMaxWidth().clickable { showCurrencyDialog = true },
-                                        enabled = false,
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                                disabledTextColor = Color.White,
-                                                disabledLabelColor = Color.Gray,
-                                                disabledBorderColor = Color(0xFF30363D),
-                                                disabledTrailingIconColor = Color.Gray
-                                        )
-                                )
+                // Cost Input
+                SystemTextField(
+                        value = costText,
+                        onValueChange = { costText = it },
+                        label = "COST PER PACK"
+                )
+                // Cigs per Day
+                SystemTextField(
+                        value = cigsPerDayText,
+                        onValueChange = { cigsPerDayText = it },
+                        label = "CIGS PER DAY"
+                )
+                // Pack Size
+                SystemTextField(
+                        value = cigsInPackText,
+                        onValueChange = { cigsInPackText = it },
+                        label = "CIGS IN PACK"
+                )
 
-                                if (showCurrencyDialog) {
-                                        CurrencySelectionDialog(
-                                                onDismiss = { showCurrencyDialog = false },
-                                                onCurrencySelected = { currency ->
-                                                        currencyText = currency.symbol
-                                                        showCurrencyDialog = false
-                                                }
-                                        )
-                                }
-                        }
-                },
-                confirmButton = {
-                        Button(
-                                onClick = {
-                                        val cost = costText.toDoubleOrNull() ?: currentConfig.costPerPack
-                                        val day = cigsPerDayText.toIntOrNull() ?: currentConfig.cigarettesPerDay
-                                        val pack = cigsInPackText.toIntOrNull() ?: currentConfig.cigarettesInPack
-                                        onConfirm(cost, day, pack, currencyText)
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF))
-                        ) {
-                                Text("SAVE", color = Color.Black, fontWeight = FontWeight.Bold)
-                        }
-                },
-                dismissButton = {
-                        TextButton(onClick = onDismiss) {
-                                Text("CANCEL", color = Color.Gray)
-                        }
+                // Currency Selector
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                            value = currencyText,
+                            onValueChange = {},
+                            label = { Text("CURRENCY", fontFamily = FontFamily.Monospace, fontSize = 12.sp) },
+                            readOnly = true,
+                            trailingIcon = {
+                                    Icon(Icons.Rounded.ArrowDropDown, null, tint = MaterialTheme.colorScheme.primary)
+                            },
+                            modifier = Modifier.fillMaxWidth().clickable { showCurrencyDialog = true },
+                            enabled = false,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledTrailingIconColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(4.dp)
+                    )
+                    // Invisible overlay to catch clicks since TextField is disabled
+                    Box(modifier = Modifier.matchParentSize().clickable { showCurrencyDialog = true })
                 }
-        )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // BUTTONS
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("CANCEL", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontFamily = FontFamily.Monospace)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val cost = costText.toDoubleOrNull() ?: currentConfig.costPerPack
+                            val day = cigsPerDayText.toIntOrNull() ?: currentConfig.cigarettesPerDay
+                            val pack = cigsInPackText.toIntOrNull() ?: currentConfig.cigarettesInPack
+                            onConfirm(cost, day, pack, currencyText)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text("SAVE CONFIG", color = MaterialTheme.colorScheme.onPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showCurrencyDialog) {
+            CurrencySelectionDialog(
+                    onDismiss = { showCurrencyDialog = false },
+                    onCurrencySelected = { currency ->
+                            currencyText = currency.symbol
+                            showCurrencyDialog = false
+                    }
+            )
+    }
 }
 
 @Composable
@@ -593,14 +669,15 @@ fun SystemTextField(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color(0xFF00E5FF),
-                        unfocusedLabelColor = Color.Gray,
-                        focusedBorderColor = Color(0xFF00E5FF),
-                        unfocusedBorderColor = Color(0xFF30363D),
-                        cursorColor = Color(0xFF00E5FF)
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        cursorColor = MaterialTheme.colorScheme.primary
                 ),
+                shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth()
         )
 }

@@ -60,20 +60,21 @@ constructor(
                 2 -> { // Cigarettes Per Day
                     val current = state.cigarettesPerDay
                     if (current.length < 3) {
-                        state.copy(cigarettesPerDay = current + input)
+                        state.copy(cigarettesPerDay = current + input, validationError = null)
                     } else state
                 }
                 3 -> { // Price Per Pack
                     val current = state.costPerPack
                     if (current.length < 5) {
-                        state.copy(costPerPack = current + input)
+                        state.copy(costPerPack = current + input, validationError = null)
                     } else state
                 }
                 4 -> { // Cigarettes In Pack
                     val current = state.cigarettesInPack
                     if (current.length < 3) {
                         state.copy(
-                            cigarettesInPack = if (current == "0") input else current + input
+                            cigarettesInPack = if (current == "0") input else current + input,
+                            validationError = null
                         )
                     } else state
                 }
@@ -81,7 +82,8 @@ constructor(
                     val current = state.minutesPerCigarette
                     if (current.length < 3) {
                         state.copy(
-                            minutesPerCigarette = if (current == "0") input else current + input
+                            minutesPerCigarette = if (current == "0") input else current + input,
+                            validationError = null
                         )
                     } else state
                 }
@@ -93,18 +95,31 @@ constructor(
     private fun handleBackspaceInput() {
         _uiState.update { state ->
             when (state.currentStep) {
-                2 -> state.copy(cigarettesPerDay = state.cigarettesPerDay.dropLast(1))
-                3 -> state.copy(costPerPack = state.costPerPack.dropLast(1))
-                4 -> state.copy(cigarettesInPack = state.cigarettesInPack.dropLast(1))
-                5 -> state.copy(minutesPerCigarette = state.minutesPerCigarette.dropLast(1))
+                2 -> state.copy(cigarettesPerDay = state.cigarettesPerDay.dropLast(1), validationError = null)
+                3 -> state.copy(costPerPack = state.costPerPack.dropLast(1), validationError = null)
+                4 -> state.copy(cigarettesInPack = state.cigarettesInPack.dropLast(1), validationError = null)
+                5 -> state.copy(minutesPerCigarette = state.minutesPerCigarette.dropLast(1), validationError = null)
                 else -> state
             }
         }
     }
 
     private fun navigateNextStep() {
-        if (_uiState.value.currentStep < 6) {
-            _uiState.update { it.copy(currentStep = it.currentStep + 1) }
+        val currentState = _uiState.value
+        val isValid = when (currentState.currentStep) {
+            2 -> currentState.cigarettesPerDay.isNotEmpty() && currentState.cigarettesPerDay.toIntOrNull() ?: 0 > 0
+            3 -> currentState.costPerPack.isNotEmpty() && currentState.costPerPack.toDoubleOrNull() ?: 0.0 > 0.0
+            4 -> currentState.cigarettesInPack.isNotEmpty() && currentState.cigarettesInPack.toIntOrNull() ?: 0 > 0
+            5 -> currentState.minutesPerCigarette.isNotEmpty() && currentState.minutesPerCigarette.toIntOrNull() ?: 0 > 0
+            else -> true
+        }
+
+        if (isValid) {
+            if (_uiState.value.currentStep < 6) {
+                _uiState.update { it.copy(currentStep = it.currentStep + 1, validationError = null) }
+            }
+        } else {
+             _uiState.update { it.copy(validationError = "Value must be greater than 0") }
         }
     }
 
@@ -153,7 +168,8 @@ data class OnboardingUiState(
     val quitDate: LocalDate = LocalDate.now(),
     val quitTime: LocalTime = LocalTime.now(),
     val currency: String = "$",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val validationError: String? = null
 ) {
     val projectedCigarettesAvoided: Int
         get() = (cigarettesPerDay.toIntOrNull() ?: 0) * 30

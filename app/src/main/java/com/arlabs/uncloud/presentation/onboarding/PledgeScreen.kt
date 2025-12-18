@@ -59,7 +59,7 @@ fun PledgeScreen(onPledgeConfirmed: () -> Unit) {
                         .background(
                             brush = Brush.radialGradient(
                                 colors = listOf(
-                                    Color(0xFF00E5FF).copy(alpha = 0.3f), // Cyan Glow
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // Cyan Glow
                                     Color.Transparent
                                 )
                             ),
@@ -100,15 +100,15 @@ fun PledgeScreen(onPledgeConfirmed: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF30363D), RoundedCornerShape(16.dp))
-                    .background(Color(0xFF161B22).copy(alpha = 0.9f), RoundedCornerShape(16.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), RoundedCornerShape(16.dp))
                     .padding(24.dp)
             ) {
                 Column {
                     Text(
                         text = "// PROTOCOL_AGREEMENT",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFF00E5FF),
+                            color = MaterialTheme.colorScheme.primary,
                             fontFamily = FontFamily.Monospace
                         )
                     )
@@ -116,7 +116,7 @@ fun PledgeScreen(onPledgeConfirmed: () -> Unit) {
                     Text(
                         text = "I am ready to reclaim my freedom.\n\nI choose health over habit, and my future over the past.\n\nToday, I take control.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color(0xFFE6EDF3),
+                            color = MaterialTheme.colorScheme.onSurface,
                             lineHeight = 28.sp,
                             fontFamily = FontFamily.Monospace
                         ),
@@ -135,7 +135,7 @@ fun PledgeScreen(onPledgeConfirmed: () -> Unit) {
                     .height(56.dp),
                 shape = RoundedCornerShape(4.dp), // Tech-looking sharp corners
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00E5FF) // Cyber Cyan
+                    containerColor = MaterialTheme.colorScheme.primary // Cyber Cyan
                 )
             ) {
                 Text(

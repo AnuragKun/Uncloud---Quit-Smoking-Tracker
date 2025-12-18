@@ -12,6 +12,9 @@ interface BreachDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBreach(breach: Breach)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBreaches(breaches: List<Breach>)
+
     @Query("SELECT * FROM breaches ORDER BY timestamp DESC")
     fun getAllBreaches(): Flow<List<Breach>>
     

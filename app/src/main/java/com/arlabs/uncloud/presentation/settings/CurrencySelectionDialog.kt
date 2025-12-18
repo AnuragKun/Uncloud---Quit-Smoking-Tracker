@@ -43,20 +43,23 @@ fun CurrencySelectionDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(600.dp) // Taller, fixed height for better scrolling
-                .padding(vertical = 24.dp),
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.85f)
+                .padding(16.dp),
             shape = RoundedCornerShape(4.dp), // Sharp "System Window" corners
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0D1117)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF30363D))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(24.dp)
             ) {
                 // 1. TERMINAL HEADER
                 Row(
@@ -70,14 +73,14 @@ fun CurrencySelectionDialog(
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
-                            color = Color(0xFF00E5FF)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -89,21 +92,22 @@ fun CurrencySelectionDialog(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = {
-                        Text("Search database...", fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = Color.Gray)
+                        Text("Search database...", fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, null, tint = Color(0xFF00E5FF))
+                        Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.primary)
                     },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF00E5FF),
-                        unfocusedBorderColor = Color(0xFF30363D),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color(0xFF00E5FF),
-                        focusedContainerColor = Color(0xFF0D1117),
-                        unfocusedContainerColor = Color(0xFF0D1117)
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     ),
+                    shape = RoundedCornerShape(4.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -131,8 +135,8 @@ fun CurrencyItem(currency: AppCurrency, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF161B22), RoundedCornerShape(8.dp))
-            .border(1.dp, Color(0xFF252A30), RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -150,14 +154,14 @@ fun CurrencyItem(currency: AppCurrency, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "(${currency.symbol})",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFF00E5FF), // Cyan accent for symbol
+                        color = MaterialTheme.colorScheme.primary, // Cyan accent for symbol
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -165,7 +169,7 @@ fun CurrencyItem(currency: AppCurrency, onClick: () -> Unit) {
             Text(
                 text = currency.name,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
             )
@@ -174,7 +178,7 @@ fun CurrencyItem(currency: AppCurrency, onClick: () -> Unit) {
         // Selection Indicator
         Text(
             text = ">",
-            color = Color(0xFF30363D),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
         )

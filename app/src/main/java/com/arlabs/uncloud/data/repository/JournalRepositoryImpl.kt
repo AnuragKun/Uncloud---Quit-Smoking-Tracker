@@ -15,9 +15,9 @@ class JournalRepositoryImpl @Inject constructor(
         return journalDao.getAllEntries()
     }
 
-    override suspend fun insertEntry(content: String, status: SystemStatus, triggers: List<String>) {
+    override suspend fun insertEntry(content: String, status: SystemStatus, triggers: List<String>, timestamp: Long) {
         val entry = JournalEntry(
-            timestamp = System.currentTimeMillis(),
+            timestamp = timestamp,
             content = content,
             status = status,
             triggers = triggers

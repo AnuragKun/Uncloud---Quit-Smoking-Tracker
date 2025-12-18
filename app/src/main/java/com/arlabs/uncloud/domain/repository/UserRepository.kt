@@ -2,6 +2,7 @@ package com.arlabs.uncloud.domain.repository
 
 import com.arlabs.uncloud.data.local.NotificationConfig
 import com.arlabs.uncloud.domain.model.UserConfig
+import com.arlabs.uncloud.domain.model.Breach
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
@@ -23,5 +24,6 @@ interface UserRepository {
 
     val breaches: Flow<List<com.arlabs.uncloud.domain.model.Breach>>
     suspend fun reportBreach(trigger: String, notes: String?)
+    suspend fun restoreBreaches(breaches: List<Breach>)
     suspend fun clearBreachesBefore(timestamp: Long)
 }

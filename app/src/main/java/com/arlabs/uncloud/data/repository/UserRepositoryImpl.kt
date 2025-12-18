@@ -120,6 +120,11 @@ constructor(
         // Final refresh to be sure everything is caught
         widgetRefresher.refreshWidgets()
     }
+    
+    override suspend fun restoreBreaches(breaches: List<com.arlabs.uncloud.domain.model.Breach>) {
+        breachDao.insertBreaches(breaches)
+    }
+
     override suspend fun clearBreachesBefore(timestamp: Long) {
         breachDao.deleteBreachesBefore(timestamp)
     }

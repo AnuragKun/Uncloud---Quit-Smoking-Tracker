@@ -33,10 +33,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 // --- THEME CONSTANTS ---
-private val SysRed = Color(0xFFFF5252)
-private val SysDark = Color(0xFF0D1117)
-private val SysPanel = Color(0xFF161B22)
-private val SysBorder = Color(0xFF30363D)
+// --- THEME CONSTANTS REMOVED (Now using MaterialTheme) ---
+// private val SysRed...
 
 @Composable
 fun ReportBreachScreen(
@@ -46,14 +44,19 @@ fun ReportBreachScreen(
     // 1. Data & State
     var selectedTrigger by remember { mutableStateOf<String?>(null) }
     val triggers = listOf(
-        "STRESS", "ALCOHOL", "SOCIAL PRESSURE",
-        "BOREDOM", "ROUTINE", "ARGUMENT",
-        "CRAVINGS", "OTHER"
+        // Situational
+        "WORK", "SOCIAL", "DRIVING", "ALCOHOL", 
+        "COFFEE", "AFTER MEAL", "WAKING UP",
+        // Emotional
+        "STRESS", "ANXIETY", "ANGER", "BOREDOM", 
+        "SADNESS", "LONELINESS", "FATIGUE", "HAPPINESS",
+        // Physical
+        "CRAVING", "HUNGER", "PAIN"
     )
 
     // Red Gradient Background
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(Color(0xFF1A0505), Color.Black)
+        colors = listOf(MaterialTheme.colorScheme.background, Color.Black)
     )
 
     Box(
@@ -73,7 +76,7 @@ fun ReportBreachScreen(
             Icon(
                 imageVector = Icons.Rounded.Warning,
                 contentDescription = null,
-                tint = SysRed,
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(48.dp)
             )
 
@@ -82,7 +85,7 @@ fun ReportBreachScreen(
             Text(
                 text = "PROTOCOL BREACH",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    color = SysRed,
+                    color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     letterSpacing = 2.sp
@@ -103,7 +106,7 @@ fun ReportBreachScreen(
             Text(
                 text = "IDENTIFY FAILURE POINT:",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = SysRed,
+                    color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
                 ),
@@ -126,11 +129,11 @@ fun ReportBreachScreen(
                             .height(56.dp)
                             .clip(RoundedCornerShape(4.dp))
                             .background(
-                                if (isSelected) SysRed.copy(alpha = 0.2f) else SysPanel
+                                if (isSelected) MaterialTheme.colorScheme.error.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface
                             )
                             .border(
                                 width = 1.dp,
-                                color = if (isSelected) SysRed else SysBorder,
+                                color = if (isSelected) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .pointerInput(Unit) {
@@ -141,7 +144,7 @@ fun ReportBreachScreen(
                         Text(
                             text = trigger,
                             style = MaterialTheme.typography.labelMedium.copy(
-                                color = if (isSelected) SysRed else Color.Gray,
+                                color = if (isSelected) MaterialTheme.colorScheme.error else Color.Gray,
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Bold
                             )
@@ -154,7 +157,7 @@ fun ReportBreachScreen(
             Text(
                 text = "WARNING: Initiating reboot will reset your active streak to Day 0.",
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color(0xFFEF5350).copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 ),
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -192,10 +195,10 @@ fun HoldToConfirmButton(
             .fillMaxWidth()
             .height(64.dp)
             .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF1E0F0F)) // Dark Red bg
+            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f)) // Dark Red bg
             .border(
                 1.dp,
-                if(isEnabled) SysRed else Color.Transparent,
+                if(isEnabled) MaterialTheme.colorScheme.error else Color.Transparent,
                 RoundedCornerShape(4.dp)
             )
             .pointerInput(isEnabled) {
@@ -245,7 +248,7 @@ fun HoldToConfirmButton(
                 .fillMaxHeight()
                 .fillMaxWidth(animatedProgress)
                 .align(Alignment.CenterStart)
-                .background(SysRed)
+                .background(MaterialTheme.colorScheme.error)
         )
 
         // Text Label
@@ -257,7 +260,7 @@ fun HoldToConfirmButton(
                 else -> "HOLD TO REBOOT SYSTEM"
             },
             style = MaterialTheme.typography.titleMedium.copy(
-                color = if (animatedProgress > 0.5f) Color.Black else SysRed,
+                color = if (animatedProgress > 0.5f) Color.Black else MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 1.sp

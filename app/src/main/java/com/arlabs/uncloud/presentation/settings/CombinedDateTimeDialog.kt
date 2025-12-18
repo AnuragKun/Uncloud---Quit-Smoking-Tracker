@@ -28,6 +28,7 @@ import java.time.ZoneId
 @Composable
 fun CombinedDateTimeDialog(
     initialMillis: Long,
+    initialTab: Int = 0, // 0 = Date, 1 = Time
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit
 ) {
@@ -38,7 +39,7 @@ fun CombinedDateTimeDialog(
         .toInstant()
         .toEpochMilli()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0 for Date, 1 for Time
+    var selectedTab by remember { mutableIntStateOf(initialTab) } // 0 for Date, 1 for Time
 
     // Theme Colors
     val sysCyan = Color(0xFF00E5FF)

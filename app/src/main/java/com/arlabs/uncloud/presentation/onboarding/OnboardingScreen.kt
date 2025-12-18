@@ -34,12 +34,8 @@ import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-// --- THEME COLORS ---
-private val SysCyan = Color(0xFF00E5FF)
-private val SysDark = Color(0xFF0D1117)
-private val SysPanel = Color(0xFF161B22)
-private val SysBorder = Color(0xFF30363D)
-private val SysGreen = Color(0xFF00FF9D)
+// --- THEME CONSTANTS REMOVED (Now using MaterialTheme) ---
+// private val SysCyan...
 
 @Composable
 fun OnboardingScreen(
@@ -59,7 +55,7 @@ fun OnboardingScreen(
 fun OnboardingContent(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
         // Cyberpunk Gradient Background
         val backgroundBrush = Brush.verticalGradient(
-                colors = listOf(SysDark, Color.Black)
+                colors = listOf(MaterialTheme.colorScheme.background, Color.Black)
         )
 
         Scaffold(
@@ -98,7 +94,7 @@ fun OnboardingContent(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Un
                                                                         .height(4.dp)
                                                                         .clip(RoundedCornerShape(2.dp))
                                                                         .background(
-                                                                                if (isActive) SysCyan else SysBorder
+                                                                                if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                                                                         )
                                                         )
                                                 }
@@ -222,7 +218,7 @@ fun PrimaryActionButton(text: String, onClick: () -> Unit) {
                 modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SysCyan),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(4.dp)
         ) {
                 Text(
@@ -237,7 +233,7 @@ fun PrimaryActionButton(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun SystemInputDisplay(value: String, prefix: String = "", suffix: String = "") {
+fun SystemInputDisplay(value: String, prefix: String = "", suffix: String = "", error: String? = null) {
         // Blinking Cursor Logic
         var cursorVisible by remember { mutableStateOf(true) }
         LaunchedEffect(Unit) {
@@ -247,54 +243,66 @@ fun SystemInputDisplay(value: String, prefix: String = "", suffix: String = "") 
                 }
         }
 
-        Box(
-                modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .background(SysPanel, RoundedCornerShape(12.dp))
-                        .border(1.dp, SysBorder, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-        ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (prefix.isNotEmpty()) {
-                                Text(
-                                        text = prefix,
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        color = Color.Gray,
-                                        fontFamily = FontFamily.Monospace
-                                )
-                        }
+        Column(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                        modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                                .border(1.dp, if (error != null) Color.Red else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (prefix.isNotEmpty()) {
+                                        Text(
+                                                text = prefix,
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                color = Color.Gray,
+                                                fontFamily = FontFamily.Monospace
+                                        )
+                                }
 
-                        // The Value
+                                // The Value
+                                Text(
+                                        text = value.ifEmpty { "0" },
+                                        style = MaterialTheme.typography.displayMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                fontFamily = FontFamily.Monospace,
+                                                color = MaterialTheme.colorScheme.primary
+                                        )
+                                )
+
+                                // Blinking Cursor
+                                if (cursorVisible) {
+                                        Box(
+                                                modifier = Modifier
+                                                        .padding(start = 4.dp)
+                                                        .width(4.dp)
+                                                        .height(32.dp)
+                                                        .background(MaterialTheme.colorScheme.primary)
+                                        )
+                                }
+
+                                if (suffix.isNotEmpty()) {
+                                        Text(
+                                                text = suffix,
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                color = Color.Gray,
+                                                fontFamily = FontFamily.Monospace,
+                                                modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                }
+                        }
+                }
+
+                if (error != null) {
                         Text(
-                                text = value.ifEmpty { "0" },
-                                style = MaterialTheme.typography.displayMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Monospace,
-                                        color = SysCyan
-                                )
+                                text = error,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp, start = 4.dp),
+                                fontFamily = FontFamily.Monospace
                         )
-
-                        // Blinking Cursor
-                        if (cursorVisible) {
-                                Box(
-                                        modifier = Modifier
-                                                .padding(start = 4.dp)
-                                                .width(4.dp)
-                                                .height(32.dp)
-                                                .background(SysCyan)
-                                )
-                        }
-
-                        if (suffix.isNotEmpty()) {
-                                Text(
-                                        text = suffix,
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        color = Color.Gray,
-                                        fontFamily = FontFamily.Monospace,
-                                        modifier = Modifier.padding(start = 8.dp)
-                                )
-                        }
                 }
         }
 }
@@ -317,8 +325,8 @@ fun SystemQuestionHeader(text: String) {
 @Composable
 fun ProjectionCard(iconRes: Int, value: String, label: String, color: Color) {
         Card(
-                colors = CardDefaults.cardColors(containerColor = SysPanel),
-                border = BorderStroke(1.dp, SysBorder),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.size(150.dp)
         ) {
@@ -367,64 +375,52 @@ fun QuitDateStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
         var showDatePicker by remember { mutableStateOf(false) }
         var showTimePicker by remember { mutableStateOf(false) }
 
-        val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = state.quitDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                selectableDates = object : SelectableDates {
-                        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                                val selectedDate = java.time.Instant.ofEpochMilli(utcTimeMillis)
-                                        .atZone(java.time.ZoneId.of("UTC"))
-                                        .toLocalDate()
-                                val today = java.time.LocalDate.now()
-                                return !selectedDate.isAfter(today) // Allow today and past
-                        }
-
-                        override fun isSelectableYear(year: Int): Boolean {
-                                return year <= java.time.LocalDate.now().year
-                        }
-                }
-        )
-        val timePickerState = rememberTimePickerState(
-                initialHour = state.quitTime.hour,
-                initialMinute = state.quitTime.minute
-        )
+        // Construct current combined timestamp for the dialog
+        val currentDateTime = java.time.LocalDateTime.of(state.quitDate, state.quitTime)
+        val currentMillis = currentDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         if (showDatePicker) {
-                DatePickerDialog(
-                        onDismissRequest = { showDatePicker = false },
-                        confirmButton = {
-                                TextButton(onClick = {
-                                        datePickerState.selectedDateMillis?.let { millis ->
-                                                val date = java.time.Instant.ofEpochMilli(millis)
-                                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-                                                onEvent(OnboardingEvent.QuitDateChanged(date))
-                                        }
-                                        showDatePicker = false
-                                }) { Text("CONFIRM", color = SysCyan) }
-                        },
-                        colors = DatePickerDefaults.colors(containerColor = SysDark)
-                ) { DatePicker(state = datePickerState) }
+                com.arlabs.uncloud.presentation.settings.components.CombinedDateTimeDialog(
+                        initialMillis = currentMillis,
+                        initialTab = 0, // Open Date Tab
+                        onDismiss = { showDatePicker = false },
+                        onConfirm = { millis ->
+                                val date = java.time.Instant.ofEpochMilli(millis)
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                                // We also captured time, might as well update it if user changed it? 
+                                // For now, let's stick to updating what was requested, but since it's a Combined Dialog, 
+                                // the user expects both to potentially change. 
+                                // However, keeping strict separation for the specific button clicked is safer for logic 
+                                // unless we merge the events.
+                                // Let's just update the DATE as per the button's purpose.
+                                onEvent(OnboardingEvent.QuitDateChanged(date))
+                                
+                                val time = java.time.Instant.ofEpochMilli(millis)
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+                                onEvent(OnboardingEvent.QuitTimeChanged(time))
+                                
+                                showDatePicker = false
+                        }
+                )
         }
 
         if (showTimePicker) {
-                androidx.compose.ui.window.Dialog(onDismissRequest = { showTimePicker = false }) {
-                        Surface(shape = RoundedCornerShape(16.dp), color = SysDark) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
-                                        TimePicker(state = timePickerState, colors = TimePickerDefaults.colors(
-                                                clockDialColor = SysPanel,
-                                                selectorColor = SysCyan,
-                                                timeSelectorSelectedContainerColor = SysPanel,
-                                                timeSelectorSelectedContentColor = SysCyan
-                                        ))
-                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                                TextButton(onClick = { showTimePicker = false }) { Text("CANCEL", color = Color.Gray) }
-                                                TextButton(onClick = {
-                                                        onEvent(OnboardingEvent.QuitTimeChanged(LocalTime.of(timePickerState.hour, timePickerState.minute)))
-                                                        showTimePicker = false
-                                                }) { Text("CONFIRM", color = SysCyan) }
-                                        }
-                                }
+                 com.arlabs.uncloud.presentation.settings.components.CombinedDateTimeDialog(
+                        initialMillis = currentMillis,
+                        initialTab = 1, // Open Time Tab
+                        onDismiss = { showTimePicker = false },
+                        onConfirm = { millis ->
+                                val time = java.time.Instant.ofEpochMilli(millis)
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+                                onEvent(OnboardingEvent.QuitTimeChanged(time))
+
+                                val date = java.time.Instant.ofEpochMilli(millis)
+                                        .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                                onEvent(OnboardingEvent.QuitDateChanged(date))
+
+                                showTimePicker = false
                         }
-                }
+                )
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -442,8 +438,8 @@ fun QuitDateStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
                 Column(
                         modifier = Modifier
                                 .fillMaxWidth()
-                                .background(SysPanel, RoundedCornerShape(16.dp))
-                                .border(1.dp, SysBorder, RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(4.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                                 .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -459,7 +455,7 @@ fun QuitDateStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically
                         ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Rounded.CalendarToday, null, tint = SysCyan, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Rounded.CalendarToday, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text("DATE", color = Color.Gray, fontFamily = FontFamily.Monospace)
                                 }
@@ -472,7 +468,7 @@ fun QuitDateStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
                                 )
                         }
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = SysBorder)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outline)
 
                         // Time Row
                         Row(
@@ -483,7 +479,7 @@ fun QuitDateStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically
                         ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Rounded.Schedule, null, tint = SysCyan, modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Rounded.Schedule, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text("TIME", color = Color.Gray, fontFamily = FontFamily.Monospace)
                                 }
@@ -505,7 +501,7 @@ fun CigarettesPerDayStep(state: OnboardingUiState) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 SystemQuestionHeader("Daily intake\nvolume?")
                 Spacer(modifier = Modifier.height(48.dp))
-                SystemInputDisplay(value = state.cigarettesPerDay, suffix = "CIGS")
+                SystemInputDisplay(value = state.cigarettesPerDay, suffix = "CIGS", error = state.validationError)
         }
 }
 
@@ -533,8 +529,8 @@ fun CostPerPackStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit
                         modifier = Modifier
                                 .fillMaxWidth()
                                 .height(100.dp)
-                                .background(SysPanel, RoundedCornerShape(12.dp))
-                                .border(1.dp, SysBorder, RoundedCornerShape(12.dp)),
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                                .border(1.dp, if (state.validationError != null) Color.Red else MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                 ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -543,13 +539,13 @@ fun CostPerPackStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit
                                         modifier = Modifier
                                                 .padding(start = 16.dp)
                                                 .clickable { showCurrencyDialog = true }
-                                                .background(SysDark, RoundedCornerShape(8.dp))
-                                                .border(1.dp, SysBorder, RoundedCornerShape(8.dp))
+                                                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
+                                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                                                 .padding(horizontal = 12.dp, vertical = 8.dp)
                                 ) {
                                         Text(
                                                 text = state.currency,
-                                                color = SysCyan,
+                                                color = MaterialTheme.colorScheme.primary,
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 24.sp,
                                                 fontFamily = FontFamily.Monospace
@@ -568,6 +564,16 @@ fun CostPerPackStep(state: OnboardingUiState, onEvent: (OnboardingEvent) -> Unit
                                 )
                         }
                 }
+
+                if (state.validationError != null) {
+                        Text(
+                                text = state.validationError!!,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp, start = 4.dp).align(Alignment.Start),
+                                fontFamily = FontFamily.Monospace
+                        )
+                }
         }
 }
 
@@ -577,7 +583,7 @@ fun CigarettesInPackStep(state: OnboardingUiState) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 SystemQuestionHeader("Pack capacity?")
                 Spacer(modifier = Modifier.height(48.dp))
-                SystemInputDisplay(value = state.cigarettesInPack, suffix = "/ PACK")
+                SystemInputDisplay(value = state.cigarettesInPack, suffix = "/ PACK", error = state.validationError)
         }
 }
 
@@ -587,7 +593,7 @@ fun MinutesPerCigaretteStep(state: OnboardingUiState) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 SystemQuestionHeader("Time spent per\ncigarette?")
                 Spacer(modifier = Modifier.height(48.dp))
-                SystemInputDisplay(value = state.minutesPerCigarette, suffix = "MIN")
+                SystemInputDisplay(value = state.minutesPerCigarette, suffix = "MIN", error = state.validationError)
         }
 }
 
@@ -618,7 +624,7 @@ fun ProjectionStep(state: OnboardingUiState) {
                                 iconRes = R.drawable.icon_money,
                                 value = "${state.currency}${String.format("%.0f", state.projectedMoneySaved)}",
                                 label = "SAVED",
-                                color = SysGreen
+                                color = MaterialTheme.colorScheme.secondary
                         )
                 }
 
@@ -628,15 +634,15 @@ fun ProjectionStep(state: OnboardingUiState) {
                 Box(
                         modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, SysCyan.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                                .background(SysCyan.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
                                 .padding(16.dp)
                 ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                         text = "SYSTEM STATUS",
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                                color = SysCyan,
+                                                color = MaterialTheme.colorScheme.primary,
                                                 letterSpacing = 2.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 fontFamily = FontFamily.Monospace
